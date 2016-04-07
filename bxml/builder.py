@@ -1,21 +1,9 @@
 
 import lxml.builder
 from bl.dict import Dict
+from .element_maker import ElementMaker
 
-class ElementMaker(lxml.builder.ElementMaker):
-    """Our ElementMaker unpacks lists when it is called, enabling it to work with 
-    nested-list-returning transformations using .xt.Transformer."""
-    
-    def __call__(self, tag, *children, **attrib):
-        chs = []
-        for ch in children:
-            if type(ch)==list:
-                chs += [c for c in ch]
-            elif ch is not None:
-                chs.append(ch)
-        return lxml.builder.ElementMaker.__call__(self, tag, *chs, **attrib)
-
-class XBuilder(Dict):
+class Builder(Dict):
     """create a set of ElementMaker methods all bound to the same object."""
     def __init__(self, default=None, nsmap=None, **namespaces):
         Dict.__init__(self)

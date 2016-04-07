@@ -3,11 +3,10 @@ from copy import deepcopy
 from lxml import etree
 from bl.dict import Dict
 
-class MatchObject(Dict):
-    pass
-
 def match(transformer, expression=None, xpath=None, namespaces=None): 
     """decorator that allows us to match by expression or by xpath for each transformation method"""
+    class MatchObject(Dict):
+        pass
     def _match(function):
         transformer.matches.append(
             MatchObject(expression=expression, xpath=xpath, function=function, namespaces=namespaces))
@@ -16,8 +15,8 @@ def match(transformer, expression=None, xpath=None, namespaces=None):
         return wrapper
     return _match
 
-class Transformer:
-    """base class for XML Transformations (XT)"""
+class XT:
+    """XML Transformations (XT)"""
 
     def __init__(self, debug=False):
         # a list of matches to select which transformation method to apply
