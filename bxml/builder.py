@@ -1,6 +1,7 @@
 
 import lxml.builder
 from bl.dict import Dict
+
 from .element_maker import ElementMaker
 
 class Builder(Dict):
@@ -24,6 +25,6 @@ class Builder(Dict):
             self._ = ElementMaker() 
 
     @classmethod
-    def single(c, namespace):
+    def single(C, namespace):
         """An element maker with a single namespace that uses that namespace as the default"""
-        return c(default=namespace)._
+        return C(default=namespace)._

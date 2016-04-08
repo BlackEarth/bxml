@@ -3,11 +3,11 @@ import os, re, time, sys, subprocess, html, json, tempfile, traceback
 from copy import deepcopy
 from lxml import etree
 from bl.dict import Dict
-from bl.file import File
 from bl.id import random_id
 from bl.string import String
+from bf.file import File
+
 from .schema import Schema
-import tempfile
 
 class XML(File):
 

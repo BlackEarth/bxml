@@ -3,7 +3,8 @@ import lxml.builder
 
 class ElementMaker(lxml.builder.ElementMaker):
     """Our ElementMaker unpacks lists when it is called, enabling it to work with 
-    nested-list-returning transformations using .xt.Transformer."""
+    nested-list-returning transformations using .xt.XT
+    """
     
     def __call__(self, tag, *children, **attrib):
         chs = []

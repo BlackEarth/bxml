@@ -1,15 +1,16 @@
 
 import os, re, sys, subprocess, tempfile
-from bl.text import Text
+from bf.text import Text
+
 from . import JARS
 
 class Schema(Text):
 
-    def __init__(self, fn):
+    def __init__(self, fn, **args):
         """relaxng schema initialization.
         fn = the schema filename (required)
         """
-        Text.__init__(self, fn=fn)
+        Text.__init__(self, fn=fn, **args)
 
     def trang(self, ext='.rng'):
         """use trang to create a schema with the given format extension
