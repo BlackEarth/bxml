@@ -2,8 +2,6 @@
 import os, re, sys, subprocess, tempfile
 from bf.text import Text
 
-from . import JARS
-
 class Schema(Text):
 
     def __init__(self, fn, **args):
@@ -15,6 +13,7 @@ class Schema(Text):
     def trang(self, ext='.rng'):
         """use trang to create a schema with the given format extension
         SIDE EFFECT: creates a new file on the filesystem."""
+        from . import JARS
         trang_jar = os.path.join(JARS, 'trang.jar')
         outfn = os.path.splitext(self.fn)[0] + ext
         stderr = tempfile.NamedTemporaryFile()
