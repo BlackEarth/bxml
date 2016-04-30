@@ -17,10 +17,8 @@ class XML(File):
         # set up the root element
         if root is None and tree is not None:
             self.root = self.tree.getroot()
-        elif type(root) == str:
-            self.root = etree.fromstring(bytes(root, encoding), parser=parser)
-        elif type(root) == bytes:
-            self.root = etree.fromstring(root, parser=parser)
+        elif type(root) in [str, bytes]:
+            self.root = XML.fromstring(root, parser=parser)
         elif root is not None:
             self.root = root
         elif type(fn) in [str, bytes]:                          # read from fn
@@ -121,10 +119,16 @@ class XML(File):
         else:
             t = s
         if len(args)==0:
-            return etree.fromstring(t)
+            return XML.fromstring(t)
         else:
-            return etree.fromstring(t % tuple(sargs))
+            return XML.fromstring(t % tuple(sargs))
     
+    @classmethod
+    def fromstring(Class, text, parser=None, base_url=None, encoding='UTF-8'):
+        if type(text)==str:
+            text = text.encode(encoding)
+        return etree.fromstring(text, parser=parser, base_url=base_url)
+
     # == VALIDATION == 
     # uses the Schema object in this module
 
@@ -380,11 +384,11 @@ class XML(File):
                 if ch.tag not in w.OMIT_ELEMS:
                     tag_words(ch)
                 ch.tail = re.sub(w.PATTERN, w.REPLACE, ch.tail or '')
-        new_elem = etree.fromstring(etree.tounicode(elem))
+        new_elem = XML.fromstring(etree.tounicode(elem))
         tag_words(new_elem)
         s = etree.tounicode(new_elem)
         s = s.replace('{%s}' %tag, '<%s>' %tag).replace('{/%s}' %tag, '</%s>' %tag)
-        new_elem = etree.fromstring(s)
+        new_elem = XML.fromstring(s)
         return new_elem
 
     @classmethod
