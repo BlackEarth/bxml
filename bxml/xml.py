@@ -78,19 +78,21 @@ class XML(File):
         """return the content of the XML document as a byte string suitable for writing"""
         if root is None: root = self.root
         return etree.tostring(root, 
-                encoding=encoding or self.info.encoding or 'UTF-8',
-                doctype=doctype or self.info.doctype, 
-                xml_declaration=xml_declaration, 
-                pretty_print=pretty_print, 
-                with_comments=with_comments)
+            encoding=encoding or self.info.encoding or 'UTF-8',
+            doctype=doctype or self.info.doctype, 
+            xml_declaration=xml_declaration, 
+            pretty_print=pretty_print, 
+            with_comments=with_comments)
 
     def __bytes__(self):
         return self.tobytes(pretty_print=True)
 
-    def tostring(self, encoding=None, **args):
+    def tostring(self, root=None, doctype=None, pretty_print=True):
         """return the content of the XML document as a unicode string"""
-        b = self.tobytes(encoding=encoding or self.info.encoding, **args)
-        return b.decode(encoding=encoding or self.info.encoding)
+        if root is None: root = self.root
+        return etree.tounicode(root, 
+            doctype=doctype or self.info.doctype, 
+            pretty_print=pretty_print)
 
     def __str__(self):
         return self.tostring(pretty_print=True)
