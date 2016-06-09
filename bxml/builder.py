@@ -16,10 +16,11 @@ class Builder(Dict):
             self[k] = ElementMaker(namespace=namespaces[k], nsmap=nsmap or knsmap)
         if default is not None:
             # create an ElementMaker that uses the given namespace as the default
-            if nsmap is None:
-                knsmap = {None:default}
-                knsmap.update(**{km:namespaces[km] for km in namespaces if namespaces[km]!=default})            
-            self._ = ElementMaker(namespace=default, nsmap=nsmap or knsmap)
+            # if nsmap is None:
+            #     knsmap = {None:default}
+            #     knsmap.update(**{km:namespaces[km] for km in namespaces if namespaces[km]!=default})            
+            # self._ = ElementMaker(namespace=default, nsmap=nsmap or knsmap)
+            self._ = ElementMaker(namespace=default, nsmap=nsmap)
         else:
             # make elements with no namespace by default
             self._ = ElementMaker() 
