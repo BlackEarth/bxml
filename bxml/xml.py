@@ -134,15 +134,20 @@ class XML(File):
     # == VALIDATION == 
     # uses the Schema object in this module
 
-    def Validator(self, tag=None, schemas=None, rebuild=False): # ADD CACHEING
+    VALIDATORS = Dict()         # caching for validators, by tag
+
+    def Validator(self, tag=None, schemas=None, rebuild=False):
         tag = tag or self.root.tag
         schemas = schemas or self.schemas
-        rngfn = Schema.filename(tag, schemas, ext='.rng')
-        if not os.path.exists(rngfn) or rebuild==True:          # .rnc => .rng
-            rncfn = Schema.filename(tag, schemas, ext='.rnc')
-            if os.path.exists(rncfn):
-                rngfn = Schema(rncfn).trang(ext='.rng')
-        return etree.RelaxNG(etree.parse(rngfn))
+        if rebuild==True or self.VALIDATORS.get(tag) is None:
+            rngfn = Schema.filename(tag, schemas, ext='.rng')
+            if rngfn is None or rebuild==True:          # .rnc => .rng
+                rncfn = Schema.filename(tag, schemas, ext='.rnc')
+                if rncfn is not None:                   # build the rng file
+                    rngfn = Schema(rncfn).trang(ext='.rng')
+            if rngfn is not None:
+                self.VALIDATORS[tag] = etree.RelaxNG(etree.parse(rngfn))
+        return self.VALIDATORS.get(tag)
 
     def assertValid(self, tag=None, schemas=None):
         validator = self.Validator(tag=tag, schemas=schemas)
