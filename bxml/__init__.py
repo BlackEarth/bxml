@@ -1,5 +1,6 @@
 
 import os
+from lxml import etree
 from bl.dict import Dict
 from .xml import XML
 
