@@ -297,12 +297,14 @@ class XML(File):
     # == TREE MANIPULATIONS == 
 
     @classmethod
-    def is_empty(c, elem):
-        return elem.text in [None, ''] and len(elem.getchildren())==0
+    def is_empty(c, elem, ignore_whitespace=False):
+        return (len(elem.getchildren())==0 
+                and ((ignore_whitespace==True and (elem.text is None or elem.text.strip()==''))
+                    or elem.text in [None, '']))
 
     @classmethod
-    def remove_if_empty(c, elem, leave_tail=True):
-        if c.is_empty(elem):
+    def remove_if_empty(c, elem, leave_tail=True, ignore_whitespace=False):
+        if c.is_empty(elem, ignore_whitespace=ignore_whitespace):
             c.remove(elem, leave_tail=leave_tail)
 
     @classmethod
