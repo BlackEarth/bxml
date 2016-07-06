@@ -72,8 +72,8 @@ class XSLT(XML):
         else:
             nst = ''
         xt = XML.Element(XSL_TEMPLATE % (XSL_NAMESPACE, nst))
-        for arg in args:
-            xt.append(XML.Element(arg))
+        for arg in [a for a in args if a is not None]:
+            xt.append(arg)
         return xt
 
     @classmethod
