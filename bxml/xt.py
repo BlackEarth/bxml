@@ -41,7 +41,7 @@ class XT:
                         if self.debug==True: self.log("=> match:", expression)
                         ee += m.function(elem, mutable=mutable, **params)
                         break
-        return ee
+        return [e for e in ee if e is not None]
 
     def Element(self, elem, mutable={}, **params):
         """Ensure that the input element is immutable by the transformation. Returns a single element."""
