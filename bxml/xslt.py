@@ -110,9 +110,11 @@ class XSLT(XML):
         return XML.Element("""<xsl:otherwise %s>%s</xsl:otherwise>""", XSL_NAMESPACE, test, val)
 
     @classmethod
-    def template_match(cls, match, val):
-        return XML.Element("""<xsl:template %s match="%s">%s</xsl:template>""", 
-            XSL_NAMESPACE, match, val)
+    def template_match(cls, match, *vals):
+        elem = XML.Element("""<xsl:template %s match="%s"></xsl:template>""", 
+            XSL_NAMESPACE, match)
+        for val in vals:
+            elem.append(val)
 
     @classmethod
     def template_match_mode(cls, match, mode, val):
