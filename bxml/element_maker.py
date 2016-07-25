@@ -10,7 +10,9 @@ class ElementMaker(lxml.builder.ElementMaker):
         chs = []
         for ch in children:
             if type(ch)==list:
-                chs += [c for c in ch]
+                for c in ch:
+                    if c is not None:
+                        chs.append(c)
             elif ch is not None:
                 chs.append(ch)
         return lxml.builder.ElementMaker.__call__(self, tag, *chs, **attrib)
