@@ -100,6 +100,14 @@ class XML(File):
     def __unicode__(self):
         return self.__str__()
 
+    def canonicalized_string(self, elem=None):
+        """use this for testing -- to compare two ElementTrees"""
+        from io import BytesIO
+        tree = etree.ElementTree(element=elem or self.root)
+        c14n = BytesIO()
+        tree.write_c14n(c14n)
+        return c14n.getvalue().decode('utf-8')
+
     def copy(self, elem=None):
         d = self.__class__()
         for k in self.keys():
@@ -223,9 +231,9 @@ class XML(File):
         return xt(elem, **params)
 
     def transform(self, transformer, elem=None, fn=None, DocClass=None, **params):
-        if DocClass==None: DocClass = self.__class__
-        if elem is None: elem = self.root
-        if fn is None: fn = self.fn
+        DocClass = DocClass or self.__class__
+        elem = elem or self.root
+        fn = fn or self.fn
         return DocClass(
                 root=transformer.Element(elem, xml=self, fn=fn, **params),
                 fn=fn)
