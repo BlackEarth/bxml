@@ -31,14 +31,14 @@ class XT:
         if type(elems) != list:
             elems = [elems]
         for elem in elems:
-            if self.debug==True: self.log(elem)
+            if self.debug==True: self.log(elem, elem.attrib)
             if type(elem)==str:
                 ee.append(elem)
             else:
                 for m in self.matches:
                     if (m.expression is not None and eval(m.expression)==True) \
                     or (m.xpath is not None and len(elem.xpath(m.xpath, namespaces=m.namespaces)) > 0):
-                        if self.debug==True: self.log("=> match:", expression)
+                        if self.debug==True: self.log("=> match:", m.expression)
                         ee += m.function(elem, mutable=mutable, **params)
                         break
         return [e for e in ee if e is not None]
