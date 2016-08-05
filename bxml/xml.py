@@ -100,10 +100,11 @@ class XML(File):
     def __unicode__(self):
         return self.__str__()
 
-    def canonicalized_string(self, elem=None):
+    @classmethod
+    def canonicalized_string(cls, elem):
         """use this for testing -- to compare two ElementTrees"""
         from io import BytesIO
-        tree = etree.ElementTree(element=elem or self.root)
+        tree = etree.ElementTree(element=elem)
         c14n = BytesIO()
         tree.write_c14n(c14n)
         return c14n.getvalue().decode('utf-8')

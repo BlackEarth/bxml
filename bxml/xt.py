@@ -35,13 +35,20 @@ class XT:
             if type(elem)==str:
                 ee.append(elem)
             else:
-                for m in self.matches:
-                    if (m.expression is not None and eval(m.expression)==True) \
-                    or (m.xpath is not None and len(elem.xpath(m.xpath, namespaces=m.namespaces)) > 0):
-                        if self.debug==True: self.log("=> match:", m.expression)
-                        ee += m.function(elem, mutable=mutable, **params)
-                        break
+                the_match = self.get_match(elem)
+                if the_match is not None:
+                    ee += the_match.function(elem, mutable=mutable, **params)
+                else:
+                    ee += self.omit(elem, mutable=mutable, **params)
         return [e for e in ee if e is not None]
+
+    def get_match(self, elem):
+        """for the given elem, return the @match function that will be applied"""
+        for m in self.matches:
+            if (m.expression is not None and eval(m.expression)==True) \
+            or (m.xpath is not None and len(elem.xpath(m.xpath, namespaces=m.namespaces)) > 0):
+                if self.debug==True: self.log("=> match:", m.expression)
+                return m
 
     def Element(self, elem, mutable={}, **params):
         """Ensure that the input element is immutable by the transformation. Returns a single element."""
