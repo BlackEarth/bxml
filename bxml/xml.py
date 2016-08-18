@@ -231,11 +231,11 @@ class XML(File):
         xt = XSLT(fn=xslfn, elem=elem, cache=cache)
         return xt(elem, **params)
 
-    def transform(self, transformer, elem=None, fn=None, DocClass=None, **params):
-        DocClass = DocClass or self.__class__
+    def transform(self, transformer, elem=None, fn=None, XMLClass=None, **params):
+        XMLClass = XMLClass or self.__class__
         elem = elem or self.root
         fn = fn or self.fn
-        return DocClass(
+        return XMLClass(
                 root=transformer.Element(elem, xml=self, fn=fn, **params),
                 fn=fn)
 
