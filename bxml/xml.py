@@ -198,7 +198,6 @@ class XML(File):
                     tempf = tempfile.NamedTemporaryFile()
                     tempf.write(etree.tounicode(self.root).encode('utf-8'))
                     fn = tempf.name
-                self.log("fn = %s, tag = %s, schema = %s" % (self.fn, tag, schemafn))
                 subprocess.check_output(['java', '-jar', jingfn, '-c', schemafn, fn])
                 if tempf is not None:
                     tempf.close()
