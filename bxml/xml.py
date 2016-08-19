@@ -515,3 +515,10 @@ class XML(File):
             elem1 = new_elem1
             elems2 = elem1.xpath("child::%s" % tag2, namespaces=namespaces)
 
+    @classmethod
+    def split(cls, elem, tag, **namespaces):
+        """Split the given elem at tag, returning a list of elements with the same attributes.
+        Use XML.xpath() syntax for the tag when it has a namespace; the namespace prefix
+        must exist in the **namespaces
+        """
+

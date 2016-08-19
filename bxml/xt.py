@@ -25,7 +25,7 @@ class XT:
         self.debug = debug
         self.log = log
 
-    def __call__(self, elems, mutable={}, **params):
+    def __call__(self, elems, **params):
         """provide a consistent interface for transformations"""
         ee = [] 
         if type(elems) != list:
@@ -37,9 +37,9 @@ class XT:
             else:
                 the_match = self.get_match(elem)
                 if the_match is not None:
-                    ee += the_match.function(elem, mutable=mutable, **params)
+                    ee += the_match.function(elem, **params)
                 else:
-                    ee += self.omit(elem, mutable=mutable, **params)
+                    ee += self.omit(elem, **params)
         return [e for e in ee if e is not None]
 
     def get_match(self, elem):
@@ -50,9 +50,9 @@ class XT:
                 if self.debug==True: self.log("=> match:", m.expression)
                 return m
 
-    def Element(self, elem, mutable={}, **params):
+    def Element(self, elem, **params):
         """Ensure that the input element is immutable by the transformation. Returns a single element."""
-        res = self.__call__(deepcopy(elem), mutable=mutable, **params)
+        res = self.__call__(deepcopy(elem), **params)
         if len(res) > 0: 
             return res[0]
         else:
@@ -60,19 +60,19 @@ class XT:
 
     # == COMMON TRANSFORMATION METHODS ==
 
-    def inner_xml(self, elem, with_tail=True, mutable={}, **params):
+    def inner_xml(self, elem, with_tail=True, **params):
         x = [elem.text or ''] \
-            + self(elem.getchildren(), mutable=mutable, **params)
+            + self(elem.getchildren(), **params)
         if with_tail == True:
             x += [elem.tail or '']
         return x
 
-    def omit(self, elem, keep_tail=True, mutable={}, **params):
+    def omit(self, elem, keep_tail=True, **params):
         r = []
         if keep_tail == True and elem.tail is not None:
             r += [elem.tail]
         return r
 
-    def copy(self, elem, mutable={}, **params):
+    def copy(self, elem, **params):
         return deepcopy(elem)
 
