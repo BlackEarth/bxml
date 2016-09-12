@@ -1,6 +1,6 @@
 
 import os, re, sys, subprocess, tempfile
-from bf.text import Text
+from bl.text import Text
 
 class Schema(Text):
 

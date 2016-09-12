@@ -5,7 +5,7 @@ from lxml import etree
 from bl.dict import Dict
 from bl.id import random_id
 from bl.string import String
-from bf.file import File
+from bl.file import File
 
 from .schema import Schema
 
@@ -64,25 +64,27 @@ class XML(File):
             return xp[0]
 
 
-    def write(self, fn=None, root=None, encoding=None, doctype=None, 
+    def write(self, fn=None, root=None, encoding='UTF-8', doctype=None, canonicalized=True, 
             xml_declaration=True, pretty_print=True, with_comments=True):
         data = self.tobytes(root=root or self.root, 
                     xml_declaration=xml_declaration, pretty_print=pretty_print,
-                    encoding=encoding or self.info.encoding or 'UTF-8',
-                    doctype=doctype or self.info.doctype,
+                    encoding=encoding or self.info.encoding,
+                    doctype=doctype or self.info.doctype, canonicalized=canonicalized,
                     with_comments=with_comments)
         File.write(self, fn=fn or self.fn, data=data)
 
-    def tobytes(self, root=None, encoding=None, doctype=None, 
+    def tobytes(self, root=None, encoding='UTF-8', doctype=None, canonicalized=True,
             xml_declaration=True, pretty_print=True, with_comments=True):
         """return the content of the XML document as a byte string suitable for writing"""
         if root is None: root = self.root
-        return etree.tostring(root, 
-            encoding=encoding or self.info.encoding or 'UTF-8',
-            doctype=doctype or self.info.doctype, 
-            xml_declaration=xml_declaration, 
-            pretty_print=pretty_print, 
-            with_comments=with_comments)
+        if canonicalized == True:
+            return self.canonicalized_bytes(root)
+        else:
+            return etree.tostring(root, encoding=encoding or self.info.encoding,
+                doctype=doctype or self.info.doctype, 
+                xml_declaration=xml_declaration, 
+                pretty_print=pretty_print, 
+                with_comments=with_comments)
 
     def __bytes__(self):
         return self.tobytes(pretty_print=True)
@@ -101,13 +103,17 @@ class XML(File):
         return self.__str__()
 
     @classmethod
-    def canonicalized_string(cls, elem):
-        """use this for testing -- to compare two ElementTrees"""
+    def canonicalized_bytes(cls, elem):
         from io import BytesIO
         tree = etree.ElementTree(element=elem)
         c14n = BytesIO()
         tree.write_c14n(c14n)
-        return c14n.getvalue().decode('utf-8')
+        return c14n.getvalue()
+
+    @classmethod
+    def canonicalized_string(cls, elem):
+        """use this for testing -- to compare two ElementTrees"""
+        return self.canonicalized_bytes(elem).decode('UTF-8')        
 
     def copy(self, elem=None):
         d = self.__class__()
