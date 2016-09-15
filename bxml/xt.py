@@ -1,8 +1,10 @@
 
+import logging
 from copy import deepcopy
 from lxml import etree
 from bl.dict import Dict
-from bl.log import Log
+
+LOG = logging.getLogger(__file__)
 
 def match(xt, expression=None, xpath=None, namespaces=None): 
     """decorator that allows us to match by expression or by xpath for each transformation method"""
@@ -19,11 +21,9 @@ def match(xt, expression=None, xpath=None, namespaces=None):
 class XT:
     """XML Transformations (XT)"""
 
-    def __init__(self, debug=False, log=Log()):
+    def __init__(self):
         # a list of matches to select which transformation method to apply
         self.matches = []
-        self.debug = debug
-        self.log = log
 
     def __call__(self, elems, **params):
         """provide a consistent interface for transformations"""
@@ -31,7 +31,7 @@ class XT:
         if type(elems) != list:
             elems = [elems]
         for elem in elems:
-            if self.debug==True: self.log(elem, elem.attrib)
+            LOG.debug(elem, elem.attrib)
             if type(elem)==str:
                 ee.append(elem)
             else:
@@ -47,7 +47,7 @@ class XT:
         for m in self.matches:
             if (m.expression is not None and eval(m.expression)==True) \
             or (m.xpath is not None and len(elem.xpath(m.xpath, namespaces=m.namespaces)) > 0):
-                if self.debug==True: self.log("=> match:", m.expression)
+                LOG.debug("=> match:", m.expression)
                 return m
 
     def Element(self, elem, **params):

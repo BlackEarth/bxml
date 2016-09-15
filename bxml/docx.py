@@ -1,8 +1,6 @@
 # DOCX object class
 
-DEBUG = False
-
-import os, re, tempfile
+import os, re, tempfile, logging
 from lxml import etree
 
 from bl.dict import Dict
@@ -10,6 +8,8 @@ from bl.string import String
 from bl.zip import ZIP
 from bxml.xml import XML
 from bl.text import Text
+
+LOG = logging.getLogger(__file__)
 
 class DOCX(ZIP):
     NS = Dict(**{
@@ -232,7 +232,7 @@ class DOCX(ZIP):
         val = float(val) * factor
         return round(float(val*scss.pt/unit), 2)*unit
 
-    def stylesheet(self, fn=None, log=print):
+    def stylesheet(self, fn=None):
         "create an SCSS stylesheet in a Text document, using DOCX.stylemap(), above."
         from bf import scss
         SPACE_EMS_FACTOR = 1/360.  # divide Word space values by 360 to get the number of ems
@@ -243,7 +243,7 @@ class DOCX(ZIP):
         incl_styles = [i for i in styles.keys() if i in all_styles]
         for i in incl_styles:
             style = styles[i]
-            if DEBUG==True: log(style.name)
+            LOG.debug(style.name)
             clas = self.classname(style.name)
             if style.type == 'paragraph':
                 tag = 'p'
@@ -258,7 +258,7 @@ class DOCX(ZIP):
                     incl_styles.append(style.basedOn)
             for j in style.properties.keys():
                 prop = style.properties[j]
-                if DEBUG==True: log('\t', prop)
+                LOG.debug('\t %r' % prop)
                 if j == 'spacing':
                     for k in prop.keys():
                         if k=='after': 
@@ -272,29 +272,29 @@ class DOCX(ZIP):
                         elif k=='lineRule':
                             pass
                         else:
-                            log(i, j, k, prop[k])
+                            LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j == 'jc':
                     for k in prop.keys():
                         if k=='val':
                             if prop[k] in ['center', 'right', 'left', 'justify']:
                                 ss.styles[sel]["text-align:"] = "%s" % prop[k]
                             else:
-                                log(i, j, k, prop[k])
+                                LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                         else:
-                            log(i, j, k, prop[k])
+                            LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j in ['sz', 'szCs']:
                     for k in prop.keys():
                         if k=='val':
                             ss.styles[sel]["font-size:"] = DOCX.value_to(prop[k], scss.em, factor=FONT_EMS_FACTOR)
                         else:
-                            log(i, j, k, prop[k])
+                            LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j=='rFonts':
                     f = prop.get('hAnsi') or prop.get('ascii')
                     if f is not None:
                         ss.styles[sel]["font-family:"] = '"%s"' % f
                 elif j=='pBdr':
                     for k in prop.keys():
-                        log(i, j, k, prop[k])
+                        LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j=='ind':
                     for k in prop.keys():
                         if k=='firstLine':
@@ -311,7 +311,7 @@ class DOCX(ZIP):
                             ss.styles[sel]["margin-left:"] += DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
                             ss.styles[sel]["text-indent:"] = -DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
                         else:
-                            log(i, j, k, prop[k])
+                            LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j in ['b', 'bCs']:
                     if prop.val=='0':
                         ss.styles[sel]["font-weight:"] = "normal"
@@ -337,7 +337,7 @@ class DOCX(ZIP):
                     elif prop.val=='center':
                         ss.styles[sel]['text-align:'] = 'center'
                     else:
-                        log(i, j, k, prop[k])
+                        LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j=='vertAlign':
                     if prop.val=='superscript':
                         ss.styles[sel]["vertical-align:"] = "text-top"
@@ -346,7 +346,7 @@ class DOCX(ZIP):
                         ss.styles[sel]["vertical-align:"] = "text-bottom"
                         ss.styles[sel]["font-size:"] = "75%"
                     else:
-                        log(i, j, prop)
+                        LOG.warning("%r %r %r" % (i, j, prop))
                 elif j=='vanish':
                     if prop.val=='1':
                         ss.styles[sel]["display:"] =  "none"
@@ -356,9 +356,9 @@ class DOCX(ZIP):
                         elif style.type=='character':
                             ss.styles[sel]["display:"] = "inline"
                         else:
-                            log(i, j, prop)
+                            LOG.warning("%r %r %r" % (i, j, prop))
                     else:
-                        log(i, j, prop)
+                        LOG.warning("%r %r %r" % (i, j, prop))
                 elif j=='pageBreakBefore':
                     ss.styles[sel]["page-break-before:"] = "always"
                 elif j=='keepNext':
@@ -372,5 +372,5 @@ class DOCX(ZIP):
                         'keepLines', 'lang', 'ligatures', 'numForm', 'numPr', 'numSpacing',]:
                     pass
                 else:
-                    log(i, j, prop)
+                    LOG.warning("%r %r %r" % (i, j, prop))
         return ss.render_css()
