@@ -103,7 +103,7 @@ class XML(File):
         return self.__str__()
 
     @classmethod
-    def canonicalized_bytes(cls, elem):
+    def canonicalized_bytes(Cls, elem):
         from io import BytesIO
         tree = etree.ElementTree(element=elem)
         c14n = BytesIO()
@@ -111,9 +111,9 @@ class XML(File):
         return c14n.getvalue()
 
     @classmethod
-    def canonicalized_string(cls, elem):
+    def canonicalized_string(Cls, elem):
         """use this for testing -- to compare two ElementTrees"""
-        return self.canonicalized_bytes(elem).decode('UTF-8')        
+        return Cls.canonicalized_bytes(elem).decode('UTF-8')        
 
     def copy(self, elem=None):
         d = self.__class__()
