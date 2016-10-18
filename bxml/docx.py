@@ -6,8 +6,8 @@ from lxml import etree
 from bl.dict import Dict
 from bl.string import String
 from bl.zip import ZIP
-from bxml.xml import XML
 from bl.text import Text
+from bxml.xml import XML
 
 LOG = logging.getLogger(__file__)
 
@@ -53,40 +53,18 @@ class DOCX(ZIP):
         shutil.copy(self.fn, tfn)
         return tfn
 
-    def write(self, fn=None):
-        fn = fn or self.fn
-        if not os.path.exists(os.path.dirname(fn)):
-            os.makedirs(os.path.dirname(fn))
-        f = open(self.fn, 'rb'); b = f.read(); f.close()
-        f = open(fn, 'wb'); f.write(b); f.close()
-
     def transform(self, transformer, fn=None, XMLClass=None, **params):
-        return self.xml(fn=fn, transformer=transformer, XMLClass=XMLClass, **params)
+        return self.xml(fn=fn).transform(transformer=transformer, XMLClass=XMLClass, docx=self, **params)
 
     def read(self, src):
         """return file data from within the docx file"""
         return self.zipfile.read(src)
 
-    def xml(self, fn=None, src='word/document.xml', transformer=None, XMLClass=None, **params):
+    def xml(self, fn=None, src='word/document.xml', XMLClass=XML, **params):
         "return the src with the given transformation applied, if any."
         if src not in self.zipfile.namelist(): return
-        XMLClass = XMLClass or XML
         x = XMLClass(fn=fn or (self.fn and self.fn.replace('.docx', '.xml')) or None, # possibly there is none
-                root=self.zipfile.open(src).read(),
-                config=self.config)
-        if transformer is not None:
-            x = XMLClass(fn=x.fn, 
-                    root=transformer.Element(x.root, docx=self, fn=x.fn, **params), 
-                    config=x.config)
-        if DEBUG == True:
-            t = etree.tounicode(x.root, pretty_print=False)
-            td = Text(fn=self.fn + '-' + src.replace('/','_')+".txt")
-            td.text = t
-            td.write()
-            print("DEBUG:", td.fn)
-            x = XMLClass(fn=x.fn, 
-                    root=etree.fromstring(t), 
-                    config=x.config)
+                root=self.zipfile.open(src).read())
         return x
 
     def metadata(self):
