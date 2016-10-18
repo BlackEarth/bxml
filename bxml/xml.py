@@ -10,6 +10,8 @@ from bl.file import File
 from .schema import Schema
 
 class XML(File):
+    ROOT_TAG = None
+    NS = {}
 
     def __init__(self, fn=None, root=None, tree=None, parser=None, encoding='UTF-8', schemas=None, **args):
         File.__init__(self, fn=fn, root=root, info=None, parser=parser, schemas=schemas, **args)
@@ -26,9 +28,9 @@ class XML(File):
             self.root = tree.getroot()
             self.info = self.get_info(tree=tree)
         elif self.ROOT_TAG is not None:
-            self.root = etree.Element(self.ROOT_TAG)
+            self.root = etree.Element(self.ROOT_TAG, nsmap=self.NS)
         else:
-            self.root = etree.Element(String(self.__class__.__name__).identifier(camelsplit=True).lower())
+            self.root = etree.Element(String(self.__class__.__name__).identifier(camelsplit=True).lower(), nsmap=self.NS)
 
         # set up document info (based on tree.docinfo)
         if self.info is None:
