@@ -6,24 +6,24 @@ from bl.dict import Dict
 
 LOG = logging.getLogger(__file__)
 
-def match(xt, expression=None, xpath=None, namespaces=None): 
-    """decorator that allows us to match by expression or by xpath for each transformation method"""
-    class MatchObject(Dict):
-        pass
-    def _match(function):
-        xt.matches.append(
-            MatchObject(expression=expression, xpath=xpath, function=function, namespaces=namespaces))
-        def wrapper(self, *args, **params):
-            return function(self, *args, **params)
-        return wrapper
-    return _match
-
 class XT:
     """XML Transformations (XT)"""
 
     def __init__(self):
         # a list of matches to select which transformation method to apply
         self.matches = []
+
+    def match(self, expression=None, xpath=None, namespaces=None): 
+        """decorator that allows us to match by expression or by xpath for each transformation method"""
+        class MatchObject(Dict):
+            pass
+        def _match(function):
+            self.matches.append(
+                MatchObject(expression=expression, xpath=xpath, function=function, namespaces=namespaces))
+            def wrapper(self, *args, **params):
+                return function(self, *args, **params)
+            return wrapper
+        return _match
 
     def __call__(self, elems, **params):
         """provide a consistent interface for transformations"""
