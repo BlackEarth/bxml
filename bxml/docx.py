@@ -56,15 +56,11 @@ class DOCX(ZIP):
     def transform(self, transformer, fn=None, XMLClass=None, **params):
         return self.xml(fn=fn).transform(transformer=transformer, XMLClass=XMLClass, docx=self, **params)
 
-    def read(self, src):
-        """return file data from within the docx file"""
-        return self.zipfile.read(src)
-
     def xml(self, fn=None, src='word/document.xml', XMLClass=XML, **params):
         "return the src with the given transformation applied, if any."
         if src not in self.zipfile.namelist(): return
         x = XMLClass(fn=fn or (self.fn and self.fn.replace('.docx', '.xml')) or None, # possibly there is none
-                root=self.zipfile.open(src).read())
+                root=self.read(src))
         return x
 
     def metadata(self):
