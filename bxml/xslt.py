@@ -20,7 +20,7 @@ class XSLT(XML):
     
     def __init__(self, cache=True, **kwargs):
         XML.__init__(self, **kwargs)
-        self.xslt = self.make_xslt(cache=cache)
+        self.__xslt = self.make_xslt(cache=cache)
         
     def __call__(self, elem, **params):
         # prepare string parameters -- see http://lxml.de/xpathxslt.html#stylesheet-parameters
@@ -29,7 +29,7 @@ class XSLT(XML):
         for key in params:
             if type(params[key]) in [str, bytes]:
                 params[key] = etree.XSLT.strparam(params[key])
-        return self.xslt(elem, **params)
+        return self.__xslt(elem, **params)
     
     def append(self, s, *args):
         if type(s) == etree._Element:
