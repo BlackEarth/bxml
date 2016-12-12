@@ -153,21 +153,22 @@ class XML(File):
 
     VALIDATORS = Dict()         # caching for validators, by tag
 
-    def Validator(self, tag=None, schemas=None, rebuild=False):
-        tag = tag or self.root.tag
-        schemas = schemas or self.schemas
-        if rebuild==True or self.VALIDATORS.get(tag) is None:
-            rngfn = Schema.filename(tag, schemas, ext='.rng')
-            if rngfn is None or rebuild==True:          # .rnc => .rng
-                rncfn = Schema.filename(tag, schemas, ext='.rnc')
-                if rncfn is not None:                   # build the rng file
-                    rngfn = Schema(rncfn).trang(ext='.rng')
-            if rngfn is not None:
-                self.VALIDATORS[tag] = etree.RelaxNG(etree.parse(rngfn))
+    def Validator(self, tag=None, schemas=None, rngfn=None, rebuild=False):
+        if rngfn is None:
+            tag = tag or self.root.tag
+            schemas = schemas or self.schemas
+            if rebuild==True or self.VALIDATORS.get(tag) is None:
+                rngfn = Schema.filename(tag, schemas, ext='.rng')
+                if rngfn is None or rebuild==True:          # .rnc => .rng
+                    rncfn = Schema.filename(tag, schemas, ext='.rnc')
+                    if rncfn is not None:                   # build the rng file
+                        rngfn = Schema(rncfn).trang(ext='.rng')
+        if rngfn is not None:
+            self.VALIDATORS[tag] = etree.RelaxNG(etree.parse(rngfn))
         return self.VALIDATORS.get(tag)
 
-    def assertValid(self, tag=None, schemas=None):
-        validator = self.Validator(tag=tag, schemas=schemas)
+    def assertValid(self, tag=None, schemas=None, rngfn=None):
+        validator = self.Validator(tag=tag, schemas=schemas, rngfn=rngfn)
         validator.assertValid(self.root)
     
     def validate(self, tag=None, schemas=None, jing=True, relax=False):
@@ -191,13 +192,13 @@ class XML(File):
         except:
             return False
 
-    def jing(self, tag=None, schemas=None, ext='.rnc'):
+    def jing(self, tag=None, schemas=None, schemafn=None, ext='.rnc'):
         """use the (included) jing library to validate the XML."""
         from . import JARS
         jingfn = os.path.join(JARS, 'jing.jar')
         tag = tag or self.root.tag
         schemas = schemas or self.schemas
-        schemafn = Schema.filename(tag, schemas, ext=ext)
+        schemafn = schemafn or Schema.filename(tag, schemas, ext=ext)
         if schemafn is not None:
             try:
                 fn = self.fn
