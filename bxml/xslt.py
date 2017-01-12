@@ -115,6 +115,7 @@ class XSLT(XML):
             XSL_NAMESPACE, match)
         for val in vals:
             elem.append(val)
+        return elem
 
     @classmethod
     def template_match_mode(cls, match, mode, val):
