@@ -28,4 +28,4 @@ class Builder(Dict):
     @classmethod
     def single(C, namespace):
         """An element maker with a single namespace that uses that namespace as the default"""
-        return C(default=namespace)._
+        return C(default=namespace, N=namespace).N
