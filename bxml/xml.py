@@ -14,7 +14,7 @@ class XML(File):
     NS = {}
 
     def __init__(self, fn=None, root=None, tree=None, parser=None, encoding='UTF-8', schemas=None, **args):
-        File.__init__(self, fn=fn, root=root, info=None, parser=parser, schemas=schemas, **args)
+        File.__init__(self, fn=fn, root=root, parser=parser, schemas=schemas, **args)
 
         # set up the root element
         if root is None and tree is not None:
@@ -73,6 +73,8 @@ class XML(File):
                     encoding=encoding or self.info.encoding,
                     doctype=doctype or self.info.doctype, canonicalized=canonicalized,
                     with_comments=with_comments)
+        if canonicalized==True and xml_declaration==True:   # add the xml declaration
+            data = ("<?xml version='1.0' encoding='%s'?>\n" % encoding).encode(encoding) + data        
         File.write(self, fn=fn or self.fn, data=data)
 
     def tobytes(self, root=None, encoding='UTF-8', doctype=None, canonicalized=True,
@@ -185,7 +187,7 @@ class XML(File):
                 errors += str(sys.exc_info()[1]).split('\n')
         return errors
 
-    def isvalid(self, tag=None, schemas=None):
+    def isValid(self, tag=None, schemas=None):
         try:
             self.assertValid(tag=tag, schemas=schemas)
             return True
@@ -230,7 +232,7 @@ class XML(File):
     @classmethod
     def tag_name(cls, tag):
         """return the name of the tag, with the namespace removed"""
-        return re.sub("{"+cls.tag_namespace(tag)+"}", "", tag)
+        return tag.split('}')[-1]
 
     # == TRANSFORMATIONS == 
 
