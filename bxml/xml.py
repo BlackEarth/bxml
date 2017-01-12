@@ -122,7 +122,7 @@ class XML(File):
     def copy(self, elem=None):
         d = self.__class__()
         for k in self.keys():
-            d[k] = deepcopy(self[k])
+            d[k] = self[k]
         d.root = deepcopy(self.root)
         return d
 
