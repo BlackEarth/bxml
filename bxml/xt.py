@@ -37,7 +37,7 @@ class XT:
             else:
                 the_match = self.get_match(elem)
                 if the_match is not None:
-                    ee += the_match.function(elem, **params)
+                    ee += the_match.function(elem, **params) or []
                 else:
                     ee += self.omit(elem, **params)
         return [e for e in ee if e is not None]
