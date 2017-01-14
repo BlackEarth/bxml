@@ -232,6 +232,8 @@ class XML(File):
     @classmethod
     def tag_name(cls, tag):
         """return the name of the tag, with the namespace removed"""
+        if type(tag) == etree._Element:
+            tag = tag.tag
         return tag.split('}')[-1]
 
     # == TRANSFORMATIONS == 
