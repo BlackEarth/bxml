@@ -13,6 +13,9 @@ class XML(File):
     ROOT_TAG = None
     NS = {}
 
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, ", ".join(["%s=%r" % (key, self[key]) for key in self]))
+
     def __init__(self, fn=None, root=None, tree=None, parser=None, encoding='UTF-8', schemas=None, **args):
         File.__init__(self, fn=fn, root=root, parser=parser, schemas=schemas, **args)
 
