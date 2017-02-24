@@ -6,7 +6,7 @@ from lxml import etree
 from bl.dict import Dict
 from bl.string import String
 from bl.zip import ZIP
-from bl.text import Text
+from bf.css import CSS
 from bxml.xml import XML
 
 LOG = logging.getLogger(__file__)
@@ -201,49 +201,66 @@ class DOCX(ZIP):
         return s
 
     @classmethod
-    def value_to(C, val, unit, factor=1.):
-        "converts a Word value to a given unit, using the factor given"
-        from bf import scss
-        val = float(val) * factor
-        return round(float(val*scss.pt/unit), 2)*unit
+    def val_to_css(C, val, factor, unit=CSS.em, pt_per_em=12., decimals=2):
+        """convert the Word val to a CSS unit
+        val     : The raw Word val
+        factor  : The conversion factor. If font sizes, typically factor=1/2., others factor=1/20.
+        unit    : The CSS unit to which we are converting, default CSS.em
+        pt_per_em : The number of CSS.pt per em. 12. is the default, but 'tain't necessarily so.
+        """
+        return (round(float(val) * factor / pt_per_em, decimals) * CSS.em).asUnit(unit)
 
-    def stylesheet(self, fn=None):
-        "create an SCSS stylesheet in a Text document, using DOCX.stylemap(), above."
-        from bf import scss
-        SPACE_EMS_FACTOR = 1/360.  # divide Word space values by 360 to get the number of ems
-        FONT_EMS_FACTOR = 1/24.    # divide Word font size values by 24 to get the number of ems
+    @classmethod
+    def selector(C, style):
+        """return the selector for the given stylemap style"""
+        clas = C.classname(style.name)
+        if style.type == 'paragraph':
+            # heading outline levels are 0..7 internally, indicating h1..h8
+            outlineLvl = int((style.properties.get('outlineLvl') or {}).get('val') or 8) + 1
+            if outlineLvl < 9:
+                tag = 'h%d' % outlineLvl
+            else:
+                tag = 'p'
+        elif style.type == 'character':
+            tag = 'span'
+        return "%s.%s" % (tag, clas)
+
+    def stylesheet(self, fn=None, unit=CSS.em, pt_per_em=None, decimals=2):
+        """create an SCSS stylesheet in a Text document, using DOCX.stylemap(), above."""
+        from bf.scss import SCSS
         styles = self.stylemap(definitions=True, all=True, cache=False)
         all_styles = self.stylemap(all=False, cache=False)
-        ss = scss.SCSS(fn=fn or (self.fn and self.fn.replace('.docx', '.scss')) or None)
+        ss = SCSS(fn=fn or (self.fn and self.fn.replace('.docx', '.scss')) or None)
         incl_styles = [i for i in styles.keys() if i in all_styles]
+        font_factor = 1/2.
+        space_factor = 1/20.
+        if pt_per_em is None:
+            # use the size of the "Normal" font as 1.0em by definition
+            normal = [styles[k] for k in styles if styles[k].name=='Normal'][0]
+            pt_per_em = float(normal.properties['sz'].val) * font_factor
         for i in incl_styles:
             style = styles[i]
-            LOG.debug(style.name)
-            clas = self.classname(style.name)
-            if style.type == 'paragraph':
-                tag = 'p'
-            elif style.type == 'character':
-                tag = 'span'
-            sel = tag + '.' + clas
+            LOG.debug("%s %s" % (style.name, style.type))
+            sel = self.selector(style)
             ss.styles[sel] = Dict()
             if style.basedOn is not None:
-                ss.styles[sel]["@extend"] = tag + '.' + self.classname(styles[style.basedOn].name)
+                ss.styles[sel]["@extend"] = self.selector(styles[style.basedOn]) + ' !optional'
                 # make sure all the "base" styles are included in the stylesheet
                 if style.basedOn not in incl_styles:
                     incl_styles.append(style.basedOn)
             for j in style.properties.keys():
                 prop = style.properties[j]
-                LOG.debug('\t %r' % prop)
+                LOG.debug('\t%s %r' % (j, prop))
                 if j == 'spacing':
                     for k in prop.keys():
                         if k=='after': 
-                            ss.styles[sel]["margin-bottom:"] = DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
+                            ss.styles[sel]["margin-bottom:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         elif k=='before': 
-                            ss.styles[sel]["margin-top:"] = DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
+                            ss.styles[sel]["margin-top:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         elif k in ['beforeAutospacing', 'afterAutospacing']:
                             pass
                         elif k=='line':
-                            ss.styles[sel]["line-spacing:"] = DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
+                            ss.styles[sel]["line-spacing:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         elif k=='lineRule':
                             pass
                         else:
@@ -257,10 +274,10 @@ class DOCX(ZIP):
                                 LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                         else:
                             LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
-                elif j in ['sz', 'szCs']:
+                elif j=='sz':
                     for k in prop.keys():
                         if k=='val':
-                            ss.styles[sel]["font-size:"] = DOCX.value_to(prop[k], scss.em, factor=FONT_EMS_FACTOR)
+                            ss.styles[sel]["font-size:"] = self.val_to_css(prop[k], factor=font_factor, unit=unit, pt_per_em=pt_per_em)
                         else:
                             LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j=='rFonts':
@@ -273,18 +290,18 @@ class DOCX(ZIP):
                 elif j=='ind':
                     for k in prop.keys():
                         if k=='firstLine':
-                            ss.styles[sel]["text-indent:"] = DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
+                            ss.styles[sel]["text-indent:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         elif k=='left':
                             if ss.styles[sel].get("margin-left:") is None:
-                                ss.styles[sel]["margin-left:"] = 0*scss.pt
-                            ss.styles[sel]["margin-left:"] += DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
+                                ss.styles[sel]["margin-left:"] = 0*CSS.pt
+                            ss.styles[sel]["margin-left:"] += self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         elif k=='right':
-                            ss.styles[sel]["margin-right:"] = DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
+                            ss.styles[sel]["margin-right:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         elif k=='hanging':
                             if ss.styles[sel].get("margin-left:") is None:
-                                ss.styles[sel]["margin-left:"] = 0*scss.pt
-                            ss.styles[sel]["margin-left:"] += DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
-                            ss.styles[sel]["text-indent:"] = -DOCX.value_to(prop[k], scss.em, factor=SPACE_EMS_FACTOR)
+                                ss.styles[sel]["margin-left:"] = 0*CSS.pt
+                            ss.styles[sel]["margin-left:"] += self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                            ss.styles[sel]["text-indent:"] = -self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         else:
                             LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j in ['b', 'bCs']:
@@ -344,8 +361,10 @@ class DOCX(ZIP):
                 elif j in ['autoSpaceDN', 'autoSpaceDE', 'tabs', 'spacing', 'contextualSpacing',
                         'suppressLineNumbers', 'suppressAutoHyphens', 'overflowPunct',
                         'adjustRightInd', 'widowControl', 'outlineLvl', 'w',
-                        'keepLines', 'lang', 'ligatures', 'numForm', 'numPr', 'numSpacing',]:
+                        'keepLines', 'lang', 'ligatures', 'numForm', 'numPr', 'numSpacing', 'szCs']:
                     pass
                 else:
                     LOG.warning("%r %r %r" % (i, j, prop))
+            LOG.debug("%s %r" % (sel, ss.styles[sel]))
         return ss.render_css()
+
