@@ -1,4 +1,7 @@
 
+import logging
+log = logging.getLogger(__name__)
+
 import lxml.builder
 from bl.dict import Dict
 
@@ -6,26 +9,18 @@ from .element_maker import ElementMaker
 
 class Builder(Dict):
     """create a set of ElementMaker methods all bound to the same object."""
-    def __init__(self, default=None, nsmap=None, **namespaces):
+    def __init__(self, default=None, **namespaces):
         Dict.__init__(self)
-        for k in namespaces:        # each namespace gets its own method, named k (for each k)
-            kdefault = default or namespaces[k]
-            if nsmap is None:
-                knsmap = {None:kdefault}
-                knsmap.update(**{km:namespaces[km] for km in namespaces if namespaces[km]!=kdefault})
-            self[k] = ElementMaker(namespace=namespaces[k], nsmap=nsmap or knsmap)
         if default is not None:
-            # create an ElementMaker that uses the given namespace as the default
-            # if nsmap is None:
-            #     knsmap = {None:default}
-            #     knsmap.update(**{km:namespaces[km] for km in namespaces if namespaces[km]!=default})            
-            # self._ = ElementMaker(namespace=default, nsmap=nsmap or knsmap)
-            self._ = ElementMaker(namespace=default, nsmap=nsmap)
+            nsmap = {None:default}
+            nsmap.update(**{k:namespaces[k] for k in namespaces.keys() if namespaces[k] != default})
         else:
-            # make elements with no namespace by default
-            self._ = ElementMaker() 
+            nsmap = namespaces
+        for key in namespaces:        # each namespace gets its own method. named for its key
+            self[key] = ElementMaker(namespace=namespaces[key], nsmap=nsmap)
+        self._ = ElementMaker(namespace=default, nsmap=nsmap)
 
     @classmethod
-    def single(C, namespace):
+    def single(C, namespace=None):
         """An element maker with a single namespace that uses that namespace as the default"""
-        return C(default=namespace, N=namespace).N
+        return C(default=namespace, _=namespace)._
