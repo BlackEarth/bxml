@@ -210,11 +210,10 @@ class XML(File):
                 tempf = None
                 if fn is None:
                     tempf = tempfile.NamedTemporaryFile()
-                    tempf.write(etree.tounicode(self.root).encode('utf-8'))
                     fn = tempf.name
-                subprocess.check_output(['java', '-jar', jingfn, '-c', schemafn, fn])
-                if tempf is not None:
                     tempf.close()
+                    open(fn, 'wb').write(etree.tounicode(self.root).encode('utf-8'))
+                subprocess.check_output(['java', '-jar', jingfn, '-c', schemafn, fn])
             except subprocess.CalledProcessError as e:
                 tbtext = html.unescape(str(e.output, 'UTF-8'))
                 raise RuntimeError(tbtext).with_traceback(sys.exc_info()[2]) from None
