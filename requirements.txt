@@ -1,4 +1,7 @@
 appdirs==1.4.3
+-e git+https://github.com/BlackEarth/bf@cfcd7a6b5b24d544e8488e3969b42f43f7ba6497#egg=bf
+-e git+https://github.com/BlackEarth/bl.git@2308c85e2695ad16dbd4cd8cd740078d379091e9#egg=bl
+-e git+https://github.com/BlackEarth/bxml@7554b68ace4e7eda9e9bf3d5a46fd2d519a461dd#egg=bxml
 cssselect==1.0.1
 cssutils==1.0.2
 libsass==0.12.3
@@ -7,5 +10,3 @@ packaging==16.8
 pyparsing==2.2.0
 six==1.10.0
 Unum==4.1.3
--e git+https://github.com/Crossway/bf@e846a6a308bd32290626bc06778d3ffafe10126b#egg=bf
--e git+https://github.com/Crossway/bl@bc484c3476044c394bc4a9080d0b45be6074eacc#egg=bl
