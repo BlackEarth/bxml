@@ -1,4 +1,4 @@
 Builder Objects
 ===============
 
-.. :automodule:: bxml.builder
+.. automodule:: bxml.builder

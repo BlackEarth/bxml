@@ -1,4 +1,4 @@
 ElementMaker Objects
 ====================
 
-.. :automodule:: bxml.element_maker
+.. automodule:: bxml.element_maker

@@ -1,5 +1,5 @@
 Word DOCX Files
 ===============
 
-.. :automodule:: bxml.docx
+.. automodule:: bxml.docx
 

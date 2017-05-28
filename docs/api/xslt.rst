@@ -1,4 +1,4 @@
 XSLT Documents
 ==============
 
-.. :automodule:: bxml.xslt
+.. automodule:: bxml.xslt

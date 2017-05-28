@@ -1,5 +1,5 @@
 Excel XLSX Files
 ================
 
-.. :automodule:: bxml.xlsx
+.. automodule:: bxml.xlsx
 
