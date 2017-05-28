@@ -1,4 +1,4 @@
 XML Documents
 =============
 
-.. :automodule: bxml.xml
+.. :automodule:: bxml.xml

@@ -1,5 +1,5 @@
 Schema Files
 ============
 
-.. :automodule: bxml.schema
+.. :automodule:: bxml.schema
 

@@ -1,4 +1,4 @@
 XT Documents
 ============
 
-.. :automodule: bxml.xt
+.. :automodule:: bxml.xt
