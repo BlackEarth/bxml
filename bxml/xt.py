@@ -47,7 +47,7 @@ class XT:
         for m in self.matches:
             if (m.expression is not None and eval(m.expression)==True) \
             or (m.xpath is not None and len(elem.xpath(m.xpath, namespaces=m.namespaces)) > 0):
-                # LOG.debug("=> match: %r" % m.expression)
+                LOG.debug("=> match: %r" % m.expression)
                 return m
 
     def Element(self, elem, **params):
