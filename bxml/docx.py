@@ -237,7 +237,10 @@ class DOCX(ZIP):
         if pt_per_em is None:
             # use the size of the "Normal" font as 1.0em by definition
             normal = [styles[k] for k in styles if styles[k].name=='Normal'][0]
-            pt_per_em = float(normal.properties['sz'].val) * font_factor
+            if normal.properties.get('sz') is not None:
+                pt_per_em = float(normal.properties['sz'].val) * font_factor
+            else:
+                pt_per_em = 12.
         for i in incl_styles:
             style = styles[i]
             LOG.debug("%s %s" % (style.name, style.type))
