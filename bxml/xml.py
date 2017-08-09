@@ -265,12 +265,11 @@ class XML(File):
         for elem in self.root.xpath("//*"):
             if elem.tag not in tags:
                 tags[elem.tag] = {}
-            for a in elem.attrib:
-                if a not in exclude_attribs:
-                    if a not in tags[elem.tag]:
-                        tags[elem.tag][a] = []
-                    if elem.get(a) not in tags[elem.tag][a]:
-                        tags[elem.tag][a].append(elem.get(a))
+            for a in [a for a in elem.attrib.keys() if a not in exclude_attribs]:
+                if a not in tags[elem.tag]:
+                    tags[elem.tag][a] = []
+                if elem.get(a) not in tags[elem.tag][a]:
+                    tags[elem.tag][a].append(elem.get(a))
         for comment in self.root.xpath("//comment()"):
             c = str(comment).strip("<>")
             if c not in tags:
