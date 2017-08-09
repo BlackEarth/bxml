@@ -298,6 +298,8 @@ class DOCX(ZIP):
                     for k in prop.keys():
                         if k=='firstLine':
                             ss.styles[sel]["text-indent:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                        if k=='hanging':
+                            ss.styles[sel]["text-indent:"] = self.val_to_css(str(-int(prop[k])), factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         elif k=='left':
                             if ss.styles[sel].get("margin-left:") is None:
                                 ss.styles[sel]["margin-left:"] = 0*CSS.pt
