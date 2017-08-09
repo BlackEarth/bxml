@@ -44,6 +44,10 @@ class DOCX(ZIP):
         'html': "http://www.w3.org/1999/xhtml",
     })
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.xml_cache = Dict()
+
     def tempfile(self):
         "write the docx to a named tmpfile and return the tmpfile filename"
         tf = tempfile.NamedTemporaryFile()
@@ -58,10 +62,12 @@ class DOCX(ZIP):
 
     def xml(self, fn=None, src='word/document.xml', XMLClass=XML, **params):
         "return the src with the given transformation applied, if any."
+        if src in self.xml_cache: return self.xml_cache[src]
         if src not in self.zipfile.namelist(): return
         x = XMLClass(
                 fn=fn or (self.fn and self.fn.replace('.docx', '.xml')) or None,
                 root=self.zipfile.read(src))
+        self.xml_cache[src] = x
         return x
 
     def metadata(self):
@@ -243,7 +249,6 @@ class DOCX(ZIP):
                 pt_per_em = 12.
         for i in incl_styles:
             style = styles[i]
-            LOG.debug("%s %s" % (style.name, style.type))
             sel = self.selector(style)
             ss.styles[sel] = Dict()
             if style.basedOn is not None:
@@ -253,7 +258,6 @@ class DOCX(ZIP):
                     incl_styles.append(style.basedOn)
             for j in style.properties.keys():
                 prop = style.properties[j]
-                LOG.debug('\t%s %r' % (j, prop))
                 if j == 'spacing':
                     for k in prop.keys():
                         if k=='after': 
@@ -368,6 +372,5 @@ class DOCX(ZIP):
                     pass
                 else:
                     LOG.warning("%r %r %r" % (i, j, prop))
-            LOG.debug("%s %r" % (sel, ss.styles[sel]))
         return ss.render_css()
 
