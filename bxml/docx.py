@@ -267,7 +267,7 @@ class DOCX(ZIP):
                         elif k in ['beforeAutospacing', 'afterAutospacing']:
                             pass
                         elif k=='line':
-                            ss.styles[sel]["line-spacing:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                            ss.styles[sel]["line-height:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
                         elif k=='lineRule':
                             pass
                         else:
@@ -341,11 +341,11 @@ class DOCX(ZIP):
                         LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
                 elif j=='vertAlign':
                     if prop.val=='superscript':
-                        ss.styles[sel]["vertical-align:"] = "text-top"
-                        ss.styles[sel]["font-size:"] = "75%"
+                        ss.styles[sel]["vertical-align:"] = "0.5em"
+                        ss.styles[sel]["font-size:"] = "0.7em"
                     elif prop.val=='subscript':
-                        ss.styles[sel]["vertical-align:"] = "text-bottom"
-                        ss.styles[sel]["font-size:"] = "75%"
+                        ss.styles[sel]["vertical-align:"] = "bottom"
+                        ss.styles[sel]["font-size:"] = "0.7em"
                     else:
                         LOG.warning("%r %r %r" % (i, j, prop))
                 elif j=='vanish':
