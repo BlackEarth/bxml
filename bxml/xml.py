@@ -249,9 +249,8 @@ class XML(File):
         XMLClass = XMLClass or self.__class__
         elem = elem or self.root
         fn = fn or self.fn
-        return XMLClass(
-                root=transformer.Element(elem, xml=self, fn=fn, **params),
-                fn=fn)
+        x = XMLClass(root=transformer.Element(elem, xml=self, fn=fn, **params), fn=fn)
+        return x
 
     # == AUDITING == 
 
@@ -260,12 +259,12 @@ class XML(File):
         words = re.split("\s+", t)
         return len(words)
         
-    def tag_dict(self, tags={}, exclude_attribs=[]):
+    def tag_dict(self, tags={}, exclude_attribs=[], include_attribs=[]):
         """returns a dict of the tags and comments that occur in an XML document"""
         for elem in self.root.xpath("//*"):
             if elem.tag not in tags:
                 tags[elem.tag] = {}
-            for a in [a for a in elem.attrib.keys() if a not in exclude_attribs]:
+            for a in [a for a in elem.attrib.keys() if (include_attribs==[] and a not in exclude_attribs) or (a in include_attribs)]:
                 if a not in tags[elem.tag]:
                     tags[elem.tag][a] = []
                 if elem.get(a) not in tags[elem.tag][a]:
