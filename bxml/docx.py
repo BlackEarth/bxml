@@ -229,17 +229,17 @@ class DOCX(ZIP):
                 tag = 'p'
         elif style.type == 'character':
             tag = 'span'
+        elif style.type == 'table':
+            tag = 'table'
+        elif style.type == 'numbering':
+            tag = 'ol'
         return "%s.%s" % (tag, clas)
 
-    def stylesheet(self, fn=None, unit=CSS.em, pt_per_em=None, decimals=2):
-        """create an SCSS stylesheet in a Text document, using DOCX.stylemap(), above."""
-        from bf.scss import SCSS
+    def stylesheet(self, fn=None, unit=CSS.em, pt_per_em=None, decimals=2, font_factor=1/2., space_factor=1/20.):
+        """create a CSS stylesheet in a Text document, using DOCX.stylemap(), above."""
         styles = self.stylemap(definitions=True, all=True, cache=False)
-        all_styles = self.stylemap(all=False, cache=False)
-        ss = SCSS(fn=fn or (self.fn and self.fn.replace('.docx', '.scss')) or None)
-        incl_styles = [i for i in styles.keys() if i in all_styles]
-        font_factor = 1/2.
-        space_factor = 1/20.
+        used_styles = self.stylemap(definitions=False, all=False, cache=False)
+        css = CSS(fn=fn or (self.fn and self.fn.replace('.docx', '.css')) or None)
         if pt_per_em is None:
             # use the size of the "Normal" font as 1.0em by definition
             normal = [styles[k] for k in styles if styles[k].name=='Normal'][0]
@@ -247,132 +247,142 @@ class DOCX(ZIP):
                 pt_per_em = float(normal.properties['sz'].val) * font_factor
             else:
                 pt_per_em = 12.
-        for i in incl_styles:
-            style = styles[i]
+        for styleName in used_styles:
+            style = styles[styleName]
             sel = self.selector(style)
-            ss.styles[sel] = Dict()
-            if style.basedOn is not None:
-                ss.styles[sel]["@extend"] = self.selector(styles[style.basedOn]) + ' !optional'
-                # make sure all the "base" styles are included in the stylesheet
-                if style.basedOn not in incl_styles:
-                    incl_styles.append(style.basedOn)
-            for j in style.properties.keys():
-                prop = style.properties[j]
-                if j == 'spacing':
-                    for k in prop.keys():
-                        if k=='after': 
-                            ss.styles[sel]["margin-bottom:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                        elif k=='before': 
-                            ss.styles[sel]["margin-top:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                        elif k in ['beforeAutospacing', 'afterAutospacing']:
-                            pass
-                        elif k=='line':
-                            ss.styles[sel]["line-height:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                        elif k=='lineRule':
-                            pass
-                        else:
-                            LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
-                elif j == 'jc':
-                    for k in prop.keys():
-                        if k=='val':
-                            if prop[k] in ['center', 'right', 'left', 'justify']:
-                                ss.styles[sel]["text-align:"] = "%s" % prop[k]
-                            else:
-                                LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
-                        else:
-                            LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
-                elif j=='sz':
-                    for k in prop.keys():
-                        if k=='val':
-                            ss.styles[sel]["font-size:"] = self.val_to_css(prop[k], factor=font_factor, unit=unit, pt_per_em=pt_per_em)
-                        else:
-                            LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
-                elif j=='rFonts':
-                    f = prop.get('hAnsi') or prop.get('ascii')
-                    if f is not None:
-                        ss.styles[sel]["font-family:"] = '"%s"' % f
-                elif j=='pBdr':
-                    for k in prop.keys():
-                        LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
-                elif j=='ind':
-                    for k in prop.keys():
-                        if k=='firstLine':
-                            ss.styles[sel]["text-indent:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                        if k=='hanging':
-                            ss.styles[sel]["text-indent:"] = self.val_to_css(str(-int(prop[k])), factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                        elif k=='left':
-                            if ss.styles[sel].get("margin-left:") is None:
-                                ss.styles[sel]["margin-left:"] = 0*CSS.pt
-                            ss.styles[sel]["margin-left:"] += self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                        elif k=='right':
-                            ss.styles[sel]["margin-right:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                        elif k=='hanging':
-                            if ss.styles[sel].get("margin-left:") is None:
-                                ss.styles[sel]["margin-left:"] = 0*CSS.pt
-                            ss.styles[sel]["margin-left:"] += self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                            ss.styles[sel]["text-indent:"] = -self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
-                        else:
-                            LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
-                elif j in ['b', 'bCs']:
-                    if prop.val=='0':
-                        ss.styles[sel]["font-weight:"] = "normal"
-                    else:
-                        ss.styles[sel]["font-weight:"] = "bold"
-                elif j in ['i', 'iCs']:
-                    if prop.val=='0':
-                        ss.styles[sel]["font-style:"] = "normal"
-                    else:
-                        ss.styles[sel]["font-style:"] = "italic"
-                elif j=='smallCaps':
-                    if prop.val=='0':
-                        ss.styles[sel]["font-variant:"] = "normal"
-                    else:
-                        ss.styles[sel]["font-variant:"] = "small-caps"
-                elif j=='caps' and prop.val!=0:
-                    if ('smallCaps' not in style.properties.keys() 
-                    or style.properties['smallCaps'].val==0):
-                        ss.styles[sel]["text-transform:"] = "uppercase"
-                elif j=='textAlignment':
-                    if prop.val=='baseline':
-                        ss.styles[sel]["vertical-align:"] = "baseline"
-                    elif prop.val=='center':
-                        ss.styles[sel]['text-align:'] = 'center'
-                    else:
-                        LOG.warning("%r %r %r %r" % (i, j, k, prop[k]))
-                elif j=='vertAlign':
-                    if prop.val=='superscript':
-                        ss.styles[sel]["vertical-align:"] = "0.5em"
-                        ss.styles[sel]["font-size:"] = "0.7em"
-                    elif prop.val=='subscript':
-                        ss.styles[sel]["vertical-align:"] = "bottom"
-                        ss.styles[sel]["font-size:"] = "0.7em"
-                    else:
-                        LOG.warning("%r %r %r" % (i, j, prop))
-                elif j=='vanish':
-                    if prop.val=='1':
-                        ss.styles[sel]["display:"] =  "none"
-                    elif prop.val=='0':
-                        if style.type=='paragraph':
-                            ss.styles[sel]["display:"] = "block"
-                        elif style.type=='character':
-                            ss.styles[sel]["display:"] = "inline"
-                        else:
-                            LOG.warning("%r %r %r" % (i, j, prop))
-                    else:
-                        LOG.warning("%r %r %r" % (i, j, prop))
-                elif j=='pageBreakBefore':
-                    ss.styles[sel]["page-break-before:"] = "always"
-                elif j=='keepNext':
-                    ss.styles[sel]["page-break-after:"] = "avoid"
-                elif j=='color':
-                    if prop.val != 'auto':
-                        ss.styles[sel]["color:"] = "#%s" % prop.val
-                elif j in ['autoSpaceDN', 'autoSpaceDE', 'tabs', 'spacing', 'contextualSpacing',
-                        'suppressLineNumbers', 'suppressAutoHyphens', 'overflowPunct',
-                        'adjustRightInd', 'widowControl', 'outlineLvl', 'w',
-                        'keepLines', 'lang', 'ligatures', 'numForm', 'numPr', 'numSpacing', 'szCs']:
-                    pass
-                else:
-                    LOG.warning("%r %r %r" % (i, j, prop))
-        return ss.render_css()
+            css.styles[sel] = self.style_properties(styles, styleName, unit=unit, pt_per_em=pt_per_em, decimals=decimals, font_factor=font_factor, space_factor=space_factor)
+            LOG.debug("%s %r" % (sel, css.styles[sel]))
 
+        return css
+
+    def style_properties(self, styles, styleName, unit=CSS.em, pt_per_em=None, decimals=2, font_factor=1/2., space_factor=1/20.):
+        style = styles[styleName]
+        LOG.debug("styleName = %s" % styleName)
+        if style.basedOn is not None:
+            LOG.debug("basedOn = %s" % style.basedOn)
+            properties = self.style_properties(styles, style.basedOn, unit=unit, pt_per_em=pt_per_em, decimals=decimals, font_factor=font_factor, space_factor=space_factor)
+        else:
+            # set some reasonable defaults that will be overridden if they are defined
+            properties = Dict(**{
+                'font-weight:': 'normal',
+                'font-style:': 'normal',
+                'text-indent:': '0',
+                })
+        for j in style.properties.keys():
+            prop = style.properties[j]
+            if j == 'spacing':
+                for k in prop.keys():
+                    if k=='after': 
+                        properties["margin-bottom:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                    elif k=='before': 
+                        properties["margin-top:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                    elif k in ['beforeAutospacing', 'afterAutospacing']:
+                        pass
+                    elif k in ['line', 'val']:
+                        properties["line-height:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                    elif k=='lineRule':
+                        pass
+                    else:
+                        LOG.warning("%r %r %r" % (j, k, prop[k]))
+            elif j == 'jc':
+                for k in prop.keys():
+                    if k=='val':
+                        if prop[k] in ['center', 'right', 'left', 'justify']:
+                            properties["text-align:"] = "%s" % prop[k]
+                        else:
+                            LOG.warning("%r %r %r" % (j, k, prop[k]))
+                    else:
+                        LOG.warning("%r %r %r" % (j, k, prop[k]))
+            elif j=='sz':
+                for k in prop.keys():
+                    if k=='val':
+                        properties["font-size:"] = self.val_to_css(prop[k], factor=font_factor, unit=unit, pt_per_em=pt_per_em)
+                    else:
+                        LOG("%r %r %r" % (j, k, prop[k]))
+            elif j=='rFonts':
+                f = prop.get('hAnsi') or prop.get('ascii')
+                if f is not None:
+                    properties["font-family:"] = '"%s"' % f
+            elif j=='pBdr':
+                for k in prop.keys():
+                    LOG.warning("%r %r %r" % (j, k, prop[k]))
+            elif j=='ind':
+                for k in prop.keys():
+                    if k=='firstLine':
+                        properties["text-indent:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                    elif k=='hanging':
+                        properties["text-indent:"] = self.val_to_css(str(-int(prop[k])), factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                    elif k=='left':
+                        if properties.get("margin-left:") is None:
+                            properties["margin-left:"] = 0*CSS.pt
+                        properties["margin-left:"] += self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                    elif k=='right':
+                        properties["margin-right:"] = self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                    elif k=='hanging':
+                        if properties.get("margin-left:") is None:
+                            properties["margin-left:"] = 0*CSS.pt
+                        properties["margin-left:"] += self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                        properties["text-indent:"] = -self.val_to_css(prop[k], factor=space_factor, unit=unit, pt_per_em=pt_per_em)
+                    else:
+                        LOG.warning("%r %r %r" % (j, k, prop[k]))
+            elif j in ['b', 'bCs']:
+                if prop.val=='0':
+                    properties["font-weight:"] = "normal"
+                else:
+                    properties["font-weight:"] = "bold"
+            elif j in ['i', 'iCs']:
+                if prop.val=='0':
+                    properties["font-style:"] = "normal"
+                else:
+                    properties["font-style:"] = "italic"
+            elif j=='smallCaps':
+                if prop.val=='0':
+                    properties["font-variant:"] = "normal"
+                else:
+                    properties["font-variant:"] = "small-caps"
+            elif j=='caps':
+                properties["text-transform:"] = "uppercase"
+            elif j=='textAlignment':
+                if prop.val=='baseline':
+                    properties["vertical-align:"] = "baseline"
+                elif prop.val=='center':
+                    properties['text-align:'] = 'center'
+                else:
+                    LOG.warning("%r %r %r" % (j, k, prop[k]))
+            elif j=='vertAlign':
+                if prop.val=='superscript':
+                    properties["vertical-align:"] = "top"
+                    properties["font-size:"] = "0.7em"
+                elif prop.val=='subscript':
+                    properties["vertical-align:"] = "bottom"
+                    properties["font-size:"] = "0.7em"
+                else:
+                    LOG.warning("%r %r" % (j, prop))
+            elif j=='vanish':
+                if prop.val=='1':
+                    properties["display:"] =  "none"
+                elif prop.val=='0':
+                    if style.type=='paragraph':
+                        properties["display:"] = "block"
+                    elif style.type=='character':
+                        properties["display:"] = "inline"
+                    else:
+                        LOG.warning("%r %r" % (j, prop))
+                else:
+                    LOG.warning("%r %r" % (j, prop))
+            elif j=='pageBreakBefore':  
+                properties["page-break-before:"] = "always"
+            elif j=='keepNext':
+                properties["page-break-after:"] = "avoid"
+            elif j=='color':
+                if prop.val != 'auto':
+                    properties["color:"] = "#%s" % prop.val
+            elif j in ['autoSpaceDN', 'autoSpaceDE', 'tabs', 'spacing', 'contextualSpacing',
+                    'suppressLineNumbers', 'suppressAutoHyphens', 'overflowPunct',
+                    'adjustRightInd', 'widowControl', 'outlineLvl', 'w',
+                    'keepLines', 'lang', 'ligatures', 'numForm', 'numPr', 'numSpacing', 'szCs',
+                    'kern', 'noProof']:
+                pass
+            else:
+                LOG.warning("%r %r" % (j, prop))
+        return properties
