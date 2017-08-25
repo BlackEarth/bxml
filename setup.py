@@ -1,13 +1,13 @@
 config = {
   "name": "bxml",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "XML library",
   "url": "https://github.com/BlackEarth/bxml",
   "author": "Sean Harrison",
   "author_email": "sah@blackearthgroup.com",
   "license": "LGPL 3.0",
   "classifiers": [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
     "Programming Language :: Python :: 3"
