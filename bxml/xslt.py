@@ -83,12 +83,18 @@ class XSLT(XML):
             XSL_NAMESPACE)
 
     @classmethod
-    def copy(cls, val):
-        return XML.Element("""<xsl:copy %s>%s</xsl:copy>""", XSL_NAMESPACE, val)
+    def copy(cls, *vals):
+        elem = XML.Element("""<xsl:copy %s></xsl:copy>""", XSL_NAMESPACE)
+        for val in vals:
+            elem.append(val)
+        return elem        
 
     @classmethod
-    def copy_select(cls, select, val):
-        return XML.Element("""<xsl:copy %s select="%s">%s</xsl:copy>""", XSL_NAMESPACE, select, val)
+    def copy_select(cls, select):
+        elem = XML.Element("""<xsl:copy %s select="%s"></xsl:copy>""", XSL_NAMESPACE, select)
+        for val in vals:
+            elem.append(val)
+        return elem
 
     @classmethod
     def copy_of(cls):
@@ -103,29 +109,40 @@ class XSLT(XML):
         return XML.Element("<xsl:choose %s/>", XSL_NAMESPACE, *args)
 
     @classmethod
-    def when(cls, test, val):
-        return XML.Element("""<xsl:when %s test="%s">%s</xsl:when>""", XSL_NAMESPACE, test, val)
+    def when(cls, test, *vals):
+        elem = XML.Element("""<xsl:when %s test="%s"></xsl:when>""", XSL_NAMESPACE, test)
+        for val in vals:
+            elem.append(val)
+        return elem
 
-    def otherwise(cls, val):
-        return XML.Element("""<xsl:otherwise %s>%s</xsl:otherwise>""", XSL_NAMESPACE, test, val)
-
-    @classmethod
-    def template_match(cls, match, *vals):
-        elem = XML.Element("""<xsl:template %s match="%s"></xsl:template>""", 
-            XSL_NAMESPACE, match)
+    def otherwise(cls, *vals):
+        elem = XML.Element("""<xsl:otherwise %s></xsl:otherwise>""", XSL_NAMESPACE, test)
         for val in vals:
             elem.append(val)
         return elem
 
     @classmethod
-    def template_match_mode(cls, match, mode, val):
-        return XML.Element("""\n<xsl:template %s match="%s" mode="%s">%s</xsl:template>""", 
-            XSL_NAMESPACE, match, mode, val)
+    def template_match(cls, match, *vals):
+        elem = XML.Element("""<xsl:template %s match="%s"></xsl:template>""", XSL_NAMESPACE, match)
+        for val in vals:
+            elem.append(val)
+        return elem
+
+    @classmethod
+    def template_match_mode(cls, match, mode, *vals):
+        elem = XML.Element("""\n<xsl:template %s match="%s" mode="%s"></xsl:template>""", 
+            XSL_NAMESPACE, match, mode)
+        for val in vals:
+            elem.append(val)
+        return elem
                 
     @classmethod
-    def template_name(cls, name, val):
-        return XML.Element("""<xsl:template %s name="%s">%s</xsl:template>""", 
-            XSL_NAMESPACE, name, val)
+    def template_name(cls, name, *vals):
+        elem = XML.Element("""<xsl:template %s name="%s"></xsl:template>""", 
+            XSL_NAMESPACE, name)
+        for val in vals:
+            elem.append(val)
+        return elem
 
     @classmethod
     def template_match_omission(cls, match):
@@ -149,19 +166,28 @@ class XSLT(XML):
             XSL_NAMESPACE, select, mode)
 
     @classmethod
-    def element(cls, name, val):
-        return XML.Element("""<xsl:element %s name="%s">%s</xsl:element>""", 
-            XSL_NAMESPACE, name, val)
+    def element(cls, name, *vals):
+        elem = XML.Element("""<xsl:element %s name="%s"></xsl:element>""", 
+            XSL_NAMESPACE, name)
+        for val in vals:
+            elem.append(val)
+        return elem
         
     @classmethod
-    def attribute(cls, name, val):
-        return XML.Element("""<xsl:attribute %s name="%s">%s</xsl:attribute>""", 
-            XSL_NAMESPACE, name, val)
+    def attribute(cls, name, *vals):
+        elem = XML.Element("""<xsl:attribute %s name="%s"></xsl:attribute>""", 
+            XSL_NAMESPACE, name)
+        for val in vals:
+            elem.append(val)
+        return elem
 
     @classmethod
-    def variable(cls, name, val):
-        return XML.Element("""<xsl:variable %s name="%s">%s</xsl:variable>""", 
-            XSL_NAMESPACE, name, val)
+    def variable(cls, name, *vals):
+        elem = XML.Element("""<xsl:variable %s name="%s"></xsl:variable>""", 
+            XSL_NAMESPACE, name)
+        for val in vals:
+            elem.append(val)
+        return elem
 
     @classmethod
     def variable_select(cls, name, select):
@@ -177,13 +203,19 @@ class XSLT(XML):
         return XML.Element("""<xsl:text %s>%s</xsl:text>""", XSL_NAMESPACE, t)
 
     @classmethod
-    def for_each(cls, select, val):
-        return XML.Element("""<xsl:for-each %s select="%s">%s</xsl:for-each>""", 
-            XSL_NAMESPACE, select, val)
+    def for_each(cls, select, *vals):
+        elem = XML.Element("""<xsl:for-each %s select="%s"></xsl:for-each>""", 
+            XSL_NAMESPACE, select)
+        for val in vals:
+            elem.append(val)
+        return elem
 
     @classmethod
-    def if_test(cls, test, val):
-        return XML.Element("""<xsl:if %s test="%s">%s</xsl:if>""", XSL_NAMESPACE, test, val)
+    def if_test(cls, test, *vals):
+        return XML.Element("""<xsl:if %s test="%s"></xsl:if>""", XSL_NAMESPACE, test)
+        for val in vals:
+            elem.append(val)
+        return elem
 
     @classmethod
     def output_method(cls, method):
