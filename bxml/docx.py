@@ -9,7 +9,7 @@ from bl.zip import ZIP
 from bf.css import CSS
 from bxml.xml import XML
 
-LOG = logging.getLogger(__file__)
+LOG = logging.getLogger(__name__)
 
 class DOCX(ZIP):
     NS = Dict(**{
