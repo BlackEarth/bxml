@@ -207,14 +207,14 @@ class DOCX(ZIP):
         return s
 
     @classmethod
-    def val_to_css(C, val, factor, unit=CSS.em, pt_per_em=12., decimals=2):
+    def val_to_css(C, val, factor, unit=CSS.rem, pt_per_em=12., decimals=2):
         """convert the Word val to a CSS unit
         val     : The raw Word val
         factor  : The conversion factor. If font sizes, typically factor=1/2., others factor=1/20.
-        unit    : The CSS unit to which we are converting, default CSS.em
+        unit    : The CSS unit to which we are converting, default CSS.rem
         pt_per_em : The number of CSS.pt per em. 12. is the default, but 'tain't necessarily so.
         """
-        return (round(float(val) * factor / pt_per_em, decimals) * CSS.em).asUnit(unit)
+        return (round(float(val) * factor / pt_per_em, decimals) * CSS.rem).asUnit(unit)
 
     @classmethod
     def selector(C, style):
@@ -235,7 +235,7 @@ class DOCX(ZIP):
             tag = 'ol'
         return "%s.%s" % (tag, clas)
 
-    def stylesheet(self, fn=None, unit=CSS.em, pt_per_em=None, decimals=2, font_factor=1/2., space_factor=1/20.):
+    def stylesheet(self, fn=None, unit=CSS.rem, pt_per_em=None, decimals=2, font_factor=1/2., space_factor=1/20.):
         """create a CSS stylesheet in a Text document, using DOCX.stylemap(), above."""
         styles = self.stylemap(definitions=True, all=True, cache=False)
         used_styles = self.stylemap(definitions=False, all=False, cache=False)
@@ -255,7 +255,7 @@ class DOCX(ZIP):
 
         return css
 
-    def style_properties(self, styles, styleName, unit=CSS.em, pt_per_em=None, decimals=2, font_factor=1/2., space_factor=1/20.):
+    def style_properties(self, styles, styleName, unit=CSS.rem, pt_per_em=None, decimals=2, font_factor=1/2., space_factor=1/20.):
         style = styles[styleName]
         LOG.debug("styleName = %s" % styleName)
         if style.basedOn is not None:
