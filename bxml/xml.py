@@ -69,7 +69,7 @@ class XML(File):
             return xp[0]
 
 
-    def write(self, fn=None, root=None, encoding='UTF-8', doctype=None, canonicalized=True, 
+    def write(self, fn=None, root=None, encoding='UTF-8', doctype=None, canonicalized=False, 
             xml_declaration=True, pretty_print=True, with_comments=True):
         data = self.tobytes(root=root or self.root, 
                     xml_declaration=xml_declaration, pretty_print=pretty_print,
