@@ -75,12 +75,12 @@ class XML(File):
     @classmethod
     def xpath(C, node, path, namespaces=None, extensions=None, smart_strings=True, **args):
         """shortcut to Element.xpath()"""
-        return node.xpath(path, namespaces=namespaces, extensions=extensions, smart_strings=smart_strings, **args)
+        return node.xpath(path, namespaces=namespaces or C.NS, extensions=extensions, smart_strings=smart_strings, **args)
 
     @classmethod
     def find(C, node, path, namespaces=None, extensions=None, smart_strings=True, **args):
         """use Element.xpath() rather than Element.find() in order to normalize the interface"""
-        xp = node.xpath(path, namespaces=namespaces, extensions=extensions, smart_strings=smart_strings, **args)
+        xp = node.xpath(path, namespaces=namespaces or C.NS, extensions=extensions, smart_strings=smart_strings, **args)
         if len(xp) > 0:
             return xp[0]
 
