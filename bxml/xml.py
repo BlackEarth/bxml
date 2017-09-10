@@ -245,7 +245,7 @@ class XML(File):
     def tag_namespace(cls, tag):
         """return the namespace for a given tag, or '' if no namespace given"""
         md = re.match("^(?:\{([^\}]*)\})?", tag)
-        return md.group(1) or md.group(0)
+        return md.group(1) # None if no namespace in tag
 
     @classmethod
     def tag_name(cls, tag):
