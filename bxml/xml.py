@@ -12,11 +12,19 @@ from .schema import Schema
 class XML(File):
     ROOT_TAG = None
     NS = {}
+    DEFAULT_NS = None
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, ", ".join(["%s=%r" % (key, self[key]) for key in self]))
 
     def __init__(self, fn=None, root=None, tree=None, parser=None, encoding='UTF-8', schemas=None, **args):
+
+        # assign the current class's values to self, because XML's values might have been overridden in the child class.
+        self.ROOT_TAG = self.__class__.ROOT_TAG
+        self.NS = self.__class__.NS
+        self.DEFAULT_NS = self.__class__.DEFAULT_NS
+
+        # parent init of course
         File.__init__(self, fn=fn, root=root, parser=parser, schemas=schemas, **args)
 
         # set up the root element
@@ -26,12 +34,20 @@ class XML(File):
             self.root = XML.fromstring(root, parser=parser)
         elif root is not None:
             self.root = root
-        elif type(fn) in [str, bytes]:                          # read from fn
+        elif type(fn) in [str, bytes] and os.path.isfile(fn):                   # read from fn
             tree = etree.parse(fn, parser=parser)
             self.root = tree.getroot()
             self.info = self.get_info(tree=tree)
         elif self.ROOT_TAG is not None:
-            self.root = etree.Element(self.ROOT_TAG, nsmap=self.NS)
+            from .builder import Builder
+            B = Builder(default=self.DEFAULT_NS, **self.NS)
+            tag = self.tag_name(self.ROOT_TAG)
+            tagns = self.tag_namespace(self.ROOT_TAG) # None if no namespace
+            if tagns is not None:
+                nstag = list(self.NS.keys())[list(self.NS.values()).index(tagns)]
+            else:
+                nstag = '_' # this is the "default" nstag for the Builder
+            self.root = B[nstag](tag)
         else:
             self.root = etree.Element(String(self.__class__.__name__).identifier(camelsplit=True).lower(), nsmap=self.NS)
 
