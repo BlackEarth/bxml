@@ -145,6 +145,21 @@ class XML(File):
         d.root = deepcopy(self.root)
         return d
 
+    def element(self, tag_path, **attributes):
+        """given a tag in xpath form and optional attributes, find the element in self.root or return a new one."""
+        xpath = tag_path
+        if len(attributes) > 0:
+            xpath += "[%s]" % ' '.join(["@%s='%s'" % (k, attributes[k]) for k in attributes])
+        e = self.find(self.root, xpath)
+        if e is None: 
+            tag = tag_path.split('/')[-1].split('[')[0]
+            tagname = tag.split(':')[-1]
+            if ':' in tag:
+                nstag = tag.split(':')[0]
+                tag = "{%s}%s" % (self.NS[nstag], tagname)
+            e = etree.Element(tag, **attributes)  
+        return e
+
     @classmethod
     def Element(cls, s, *args):
         """given a string s and string *args, return an Element."""
