@@ -129,6 +129,10 @@ class XML(File):
     def __unicode__(self):
         return self.__str__()
 
+    def digest(self, **args):
+        """calculate a digest based on the hash of the article's content"""
+        return String(self.canonicalized).digest(**args)
+
     @classmethod
     def canonicalized_bytes(Cls, elem):
         from io import BytesIO
@@ -207,15 +211,17 @@ class XML(File):
             self.VALIDATORS[tag] = etree.RelaxNG(etree.parse(rngfn))
         return self.VALIDATORS.get(tag)
 
-    def assertValid(self, tag=None, schemas=None, rngfn=None):
-        validator = self.Validator(tag=tag, schemas=schemas, rngfn=rngfn)
+    def assertValid(self, tag=None, schemas=None, rngfn=None, validator=None):
+        validator = validator or self.Validator(tag=tag, schemas=schemas, rngfn=rngfn)
         validator.assertValid(self.root)
     
-    def validate(self, tag=None, schemas=None, jing=True, relax=False):
+    def validate(self, tag=None, schemas=None, jing=True, relax=True):
         errors = []
         if relax==True:
+            # this throws an uncaught error if the schema cannot be parsed.
+            validator = self.Validator(tag=tag, schemas=schemas)
             try:
-                self.assertValid(tag=tag, schemas=schemas)
+                self.assertValid(validator=validator)
             except:
                 errors += [str(sys.exc_info()[1]).strip()]
         if jing==True:
