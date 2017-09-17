@@ -84,6 +84,10 @@ class XML(File):
         if len(xp) > 0:
             return xp[0]
 
+    @classmethod
+    def Builder(C):
+        import bxml.builder
+        return bxml.builder.Builder(default=C.DEFAULT_NS, **C.NS)
 
     def write(self, fn=None, root=None, encoding='UTF-8', doctype=None, canonicalized=False, 
             xml_declaration=True, pretty_print=True, with_comments=True):
