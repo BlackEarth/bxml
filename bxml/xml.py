@@ -215,18 +215,18 @@ class XML(File):
         validator = validator or self.Validator(tag=tag, schemas=schemas, rngfn=rngfn)
         validator.assertValid(self.root)
     
-    def validate(self, tag=None, schemas=None, jing=True, relax=True):
+    def validate(self, tag=None, schemas=None, schemafn=None, jing=True, relax=False):
         errors = []
         if relax==True:
             # this throws an uncaught error if the schema cannot be parsed.
-            validator = self.Validator(tag=tag, schemas=schemas)
+            validator = self.Validator(tag=tag, schemas=schemas, rngfn=schemafn)
             try:
                 self.assertValid(validator=validator)
             except:
                 errors += [str(sys.exc_info()[1]).strip()]
         if jing==True:
             try:
-                self.jing(tag=tag, schemas=schemas)
+                self.jing(tag=tag, schemas=schemas, schemafn=schemafn)
             except:
                 errors += str(sys.exc_info()[1]).split('\n')
         return errors
