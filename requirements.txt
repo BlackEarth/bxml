@@ -1,7 +1,7 @@
 appdirs==1.4.3
--e git+https://github.com/BlackEarth/bf@cfcd7a6b5b24d544e8488e3969b42f43f7ba6497#egg=bf
--e git+https://github.com/BlackEarth/bl.git@2308c85e2695ad16dbd4cd8cd740078d379091e9#egg=bl
--e git+https://github.com/BlackEarth/bxml@7554b68ace4e7eda9e9bf3d5a46fd2d519a461dd#egg=bxml
+-e git+https://github.com/BlackEarth/bf@07e280ed6cd7afed68664643c707d8752d314b9c#egg=bf
+-e git+https://github.com/BlackEarth/bl.git@f668ea9d06141ce9ed1cae6b1c273e9ce809ad8d#egg=bl
+-e git+https://github.com/BlackEarth/bxml@8f6de704e98f123096f7772acfcd94f0c2f896aa#egg=bxml
 cssselect==1.0.1
 cssutils==1.0.2
 libsass==0.12.3
