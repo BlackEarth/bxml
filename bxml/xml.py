@@ -17,15 +17,18 @@ class XML(File):
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, ", ".join(["%s=%r" % (key, self[key]) for key in self]))
 
-    def __init__(self, fn=None, root=None, tree=None, parser=None, encoding='UTF-8', schemas=None, **args):
-
-        # assign the current class's values to self, because XML's values might have been overridden in the child class.
-        self.ROOT_TAG = self.__class__.ROOT_TAG
-        self.NS = self.__class__.NS
-        self.DEFAULT_NS = self.__class__.DEFAULT_NS
+    def __init__(self, fn=None, root=None, tree=None, parser=None, encoding='UTF-8', schemas=None, NS=None, **args):
 
         # parent init of course
         File.__init__(self, fn=fn, root=root, parser=parser, schemas=schemas, **args)
+
+        # assign the current class's values to self, because XML's values might have been overridden in the child class.
+        self.ROOT_TAG = self.__class__.ROOT_TAG
+        self.DEFAULT_NS = self.__class__.DEFAULT_NS
+        if NS is not None:
+            self.NS = NS
+        else:
+            self.NS = self.__class__.NS
 
         # set up the root element
         if root is None and tree is not None:
