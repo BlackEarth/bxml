@@ -61,15 +61,21 @@ class XML(File):
     @classmethod
     def get_info(c, tree=None):
         if tree is not None:
-            docinfo = tree.docinfo
-            return Dict(
-                    URL = docinfo.URL,
-                    doctype = docinfo.doctype,
-                    root_name = docinfo.root_name,
-                    xml_version = docinfo.xml_version,
-                    encoding = docinfo.encoding)
+            info = Dict(**{
+                'URL': tree.docinfo.URL, 
+                'doctype': tree.docinfo.doctype, 
+                'encoding': tree.docinfo.encoding, 
+                'externalDTD': tree.docinfo.externalDTD, 
+                'internalDTD': tree.docinfo.internalDTD, 
+                'public_id': tree.docinfo.public_id, 
+                'system_url': tree.docinfo.system_url, 
+                'root_name': tree.docinfo.root_name, 
+                'standalone': tree.docinfo.standalone, 
+                'xml_version': tree.docinfo.xml_version,
+            })
         else:
-            return Dict()
+            info = Dict()
+        return info
 
     @classmethod
     def href_to_id(C, href):
