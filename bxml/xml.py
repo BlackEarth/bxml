@@ -311,21 +311,39 @@ class XML(File):
         t = etree.tounicode(self.root, method="text").strip()
         words = re.split("\s+", t)
         return len(words)
-        
-    def tag_dict(self, tags={}, exclude_attribs=[], include_attribs=[]):
-        """returns a dict of the tags and comments that occur in an XML document"""
-        for elem in self.root.xpath("//*"):
-            if elem.tag not in tags:
-                tags[elem.tag] = {}
-            for a in [a for a in elem.attrib.keys() if (include_attribs==[] and a not in exclude_attribs) or (a in include_attribs)]:
-                if a not in tags[elem.tag]:
-                    tags[elem.tag][a] = []
-                if elem.get(a) not in tags[elem.tag][a]:
-                    tags[elem.tag][a].append(elem.get(a))
-        for comment in self.root.xpath("//comment()"):
-            c = str(comment).strip("<>")
-            if c not in tags:
-                tags[c] = {}
+
+    def element_map(self, tags=None, xpath="//*", exclude_attribs=[], include_attribs=[], attrib_vals=False, hierarchy=False, minimize=False):
+        """return a dict of element tags, their attribute names, and optionally attribute values, 
+            in the XML document
+        """
+        if tags is None: tags = Dict()
+        for elem in self.root.xpath(xpath):
+            if elem.tag not in tags.keys(): 
+                tags[elem.tag] = Dict(**{'parents': [], 'children': [], 'attributes': Dict()})
+            for a in [a for a in elem.attrib.keys() 
+                if (include_attribs==[] and a not in exclude_attribs)
+                or (a in include_attribs)
+            ]:
+                # Attribute Names
+                if a not in tags[elem.tag].attributes.keys(): 
+                    tags[elem.tag].attributes[a] = []
+                # Attribute Values
+                if attrib_vals==True and elem.get(a) not in tags[elem.tag].attributes[a]:
+                    tags[elem.tag].attributes[a].append(elem.get(a))
+            # Hierarchy: Parents and Children
+            if hierarchy==True:
+                parent = elem.getparent()
+                if parent is not None and parent.tag not in tags[elem.tag].parents: 
+                    tags[elem.tag].parents.append(parent.tag)
+                for child in elem.xpath("*"):
+                    if child.tag not in tags[elem.tag].children:
+                        tags[elem.tag].children.append(child.tag)
+        if minimize==True:
+            for tag in tags.keys():
+                if tags[tag].get('parents')==[]: tags[tag].pop('parents')
+                if tags[tag].get('children')==[]: tags[tag].pop('children')
+                if tags[tag].get('attributes')=={}: tags[tag].pop('attributes')
+                if tags[tag]=={}: tags.pop(tag)
         return tags
 
     # == CONVERSIONS == 
