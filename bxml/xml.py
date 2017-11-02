@@ -255,6 +255,9 @@ class XML(File):
         schemas = schemas or self.schemas
         schemafn = schemafn or Schema.filename(tag, schemas, ext=ext)
         if schemafn is not None:
+            cmd = ['java', '-jar', jingfn, '-c', schemafn]
+            if os.path.splitext(schemafn)[-1].lower() != '.rnc':
+                cmd.pop(cmd.index('-c'))
             try:
                 fn = self.fn
                 tempf = None
@@ -263,7 +266,7 @@ class XML(File):
                     fn = tempf.name
                     tempf.close()
                     open(fn, 'wb').write(etree.tounicode(self.root).encode('utf-8'))
-                subprocess.check_output(['java', '-jar', jingfn, '-c', schemafn, fn])
+                subprocess.check_output(cmd + [fn])
             except subprocess.CalledProcessError as e:
                 tbtext = html.unescape(str(e.output, 'UTF-8'))
                 raise RuntimeError(tbtext).with_traceback(sys.exc_info()[2]) from None
