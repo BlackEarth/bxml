@@ -1,10 +1,13 @@
 
-import time
+import html, logging, os, subprocess, sys, tempfile, time
 from lxml import etree
 from bl.dict import Dict
 from bl.string import String
 
 from .xml import XML
+from . import JARS
+
+log = logging.getLogger(__name__)
 
 XSL_NAMESPACE = "xmlns:xsl='http://www.w3.org/1999/XSL/Transform'"
 XSL_TEMPLATE = """<xsl:stylesheet version="1.0" %s%s><xsl:output method="xml"/></xsl:stylesheet>"""
@@ -30,7 +33,30 @@ class XSLT(XML):
             if type(params[key]) in [str, bytes]:
                 params[key] = etree.XSLT.strparam(params[key])
         return self.__xslt(elem, **params)
-    
+
+    def saxon6(self, elem, **params):
+        """Use Saxon6 to process the element. 
+        If the XSLT has a filename (fn), use that. Otherwise, make temp.
+        """
+        saxon6path = os.path.join(JARS, 'saxon.jar')   # saxon 6.5.5, included with jing and trang
+        with tempfile.TemporaryDirectory() as tempdir:
+            if self.fn is None:
+                xslfn = os.path.join(tempdir, "xslt.xsl")
+                self.write(fn=xslfn)
+            else:
+                xslfn = self.fn
+            srcfn = os.path.join(tempdir, "src.xml")
+            outfn = os.path.join(tempdir, "out.xml")
+            XML(fn=srcfn, root=elem).write()
+            cmd = ['java', '-jar', saxon6path, '-o', outfn, srcfn, xslfn] \
+                + ["%s=%r" % (key, params[key]) for key in params.keys()]
+            log.debug("saxon6: %r " % cmd)
+            try:
+                subprocess.check_output(cmd)
+            except subprocess.CalledProcessError as e:
+                error = html.unescape(str(e.output, 'UTF-8'))
+                raise RuntimeError(error).with_traceback(sys.exc_info()[2]) from None
+            return etree.parse(outfn)
     def append(self, s, *args):
         if type(s) == etree._Element:
             elem = s
