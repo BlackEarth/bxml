@@ -57,6 +57,31 @@ class XSLT(XML):
                 error = html.unescape(str(e.output, 'UTF-8'))
                 raise RuntimeError(error).with_traceback(sys.exc_info()[2]) from None
             return etree.parse(outfn)
+
+    def saxon9(self, elem, **params):
+        """Use Saxon9 to process the element. 
+        If the XSLT has a filename (fn), use that. Otherwise, make temp.
+        """
+        saxon9path = os.path.join(JARS, 'saxon9', 'saxon9he.jar')   # saxon 9
+        with tempfile.TemporaryDirectory() as tempdir:
+            if self.fn is None:
+                xslfn = os.path.join(tempdir, "xslt.xsl")
+                self.write(fn=xslfn)
+            else:
+                xslfn = self.fn
+            srcfn = os.path.join(tempdir, "src.xml")
+            outfn = os.path.join(tempdir, "out.xml")
+            XML(fn=srcfn, root=elem).write()
+            cmd = ['java', '-jar', saxon9path, '-o:%s' % outfn, '-s:%s' % srcfn, '-xsl:%s' % xslfn] \
+                + ["%s=%r" % (key, params[key]) for key in params.keys()]
+            log.debug("saxon9: %r " % cmd)
+            try:
+                subprocess.check_output(cmd)
+            except subprocess.CalledProcessError as e:
+                error = html.unescape(str(e.output, 'UTF-8'))
+                raise RuntimeError(error).with_traceback(sys.exc_info()[2]) from None
+            return etree.parse(outfn)
+
     def append(self, s, *args):
         if type(s) == etree._Element:
             elem = s
@@ -94,7 +119,9 @@ class XSLT(XML):
     @classmethod
     def stylesheet(cls, *args, namespaces=None):
         if namespaces is not None:
-            nst = ' ' + ' '.join(["xmlns:%s='%s'" % (k, namespaces[k]) for k in namespaces.keys()])
+            nst = ' ' + ' '.join(["xmlns:%s='%s'" % (k, namespaces[k]) for k in namespaces.keys() if k is not None])
+            if None in namespaces.keys():
+                nst += " xmlns='%s'" % namespaces[None]
         else:
             nst = ''
         xt = XML.Element(XSL_TEMPLATE % (XSL_NAMESPACE, nst))
