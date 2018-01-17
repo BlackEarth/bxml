@@ -1,6 +1,6 @@
 config = {
   "name": "bxml",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "description": "XML library",
   "url": "https://github.com/BlackEarth/bxml",
   "author": "Sean Harrison",
@@ -19,7 +19,7 @@ config = {
     "test": []
   },
   "package_data": {
-    "": ["*.jar"]
+    "bxml": ["jars/*.jar", "jars/saxon9/*.jar"]
   },
   "data_files": [],
   "scripts": []
