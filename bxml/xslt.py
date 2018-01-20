@@ -73,7 +73,7 @@ class XSLT(XML):
             outfn = os.path.join(tempdir, "out.xml")
             XML(fn=srcfn, root=elem).write()
             cmd = ['java', '-jar', saxon9path, '-o:%s' % outfn, '-s:%s' % srcfn, '-xsl:%s' % xslfn] \
-                + ["%s=%r" % (key, params[key]) for key in params.keys()]
+                + ['%s=%s' % (key, params[key]) for key in params.keys()]
             log.debug("saxon9: %r " % cmd)
             try:
                 subprocess.check_output(cmd)
