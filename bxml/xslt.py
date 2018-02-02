@@ -61,6 +61,7 @@ class XSLT(XML):
     def saxon9(self, elem, **params):
         """Use Saxon9 to process the element. 
         If the XSLT has a filename (fn), use that. Otherwise, make temp.
+        Returns an lxml.etree._ElementTree (not _Element)
         """
         saxon9path = os.path.join(JARS, 'saxon9', 'saxon9he.jar')   # saxon 9
         with tempfile.TemporaryDirectory() as tempdir:

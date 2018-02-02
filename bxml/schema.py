@@ -10,12 +10,13 @@ class Schema(Text):
         """
         Text.__init__(self, fn=fn, **args)
 
-    def trang(self, ext='.rng'):
-        """use trang to create a schema with the given format extension
-        SIDE EFFECT: creates a new file on the filesystem."""
+    def trang(self, outfn=None, ext='.rng'):
+        """use trang to convert the Schema to the given output filename or to the given extension
+        SIDE EFFECT: creates a new file on the filesystem.
+        """
         from . import JARS
         trang_jar = os.path.join(JARS, 'trang.jar')
-        outfn = os.path.splitext(self.fn)[0] + ext
+        outfn = outfn or os.path.splitext(self.fn)[0] + ext
         stderr = tempfile.NamedTemporaryFile()
         try:
             result = subprocess.check_call(
@@ -29,6 +30,21 @@ class Schema(Text):
         if result==0:
             return outfn
     
+    def schematron(self, fn=None, outfn=None, ext='.sch'):
+        """convert the Schema to schematron and save at the given output filename or with the given extension."""
+        from .xslt import XSLT
+        from . import PATH, XML, etree
+        rng2schfn = os.path.join(PATH, 'xslts', 'rng2sch.xslt')
+        rng2sch = XSLT(fn=rng2schfn)
+        fn = fn or self.fn
+        if os.path.splitext(fn)[-1].lower()!='.rng':
+            fn = Schema(fn=fn).trang(ext='.rng')
+        rng = XML(fn=fn)
+        outfn = outfn or os.path.splitext(fn)[0]+ext
+        sch = XML(fn=outfn, root=rng2sch.saxon9(rng.root).getroot())
+        sch.write()
+        return sch.fn
+
     @classmethod
     def from_tag(cls, tag, schemas, ext='.rnc'):
         """load a schema using an element's tag. schemas can be a string or a list of strings"""
