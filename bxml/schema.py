@@ -34,11 +34,12 @@ class Schema(Text):
         """convert the Schema to schematron and save at the given output filename or with the given extension."""
         from .xslt import XSLT
         from . import PATH, XML, etree
-        rng2schfn = os.path.join(PATH, 'xslts', 'rng2sch.xslt')
-        rng2sch = XSLT(fn=rng2schfn)
         fn = fn or self.fn
-        if os.path.splitext(fn)[-1].lower()!='.rng':
+        if os.path.splitext(fn)[-1].lower()==ext:
+            return fn
+        elif os.path.splitext(fn)[-1].lower()!='.rng':
             fn = Schema(fn=fn).trang(ext='.rng')
+        rng2sch = XSLT(fn=os.path.join(PATH, 'xslts', 'rng2sch.xslt'))
         rng = XML(fn=fn)
         outfn = outfn or os.path.splitext(fn)[0]+ext
         sch = XML(fn=outfn, root=rng2sch.saxon9(rng.root).getroot())
