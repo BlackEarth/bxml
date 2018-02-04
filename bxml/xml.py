@@ -224,20 +224,22 @@ class XML(File):
         validator = validator or self.Validator(tag=tag, schemas=schemas, rngfn=rngfn)
         validator.assertValid(self.root)
     
-    def validate(self, tag=None, schemas=None, schemafn=None, jing=True, relax=False):
+    def validate(self, tag=None, schemas=None, schemafn=None, jing=True, lxml=False, schematron=False):
         errors = []
-        if relax==True:
+        if jing==True:
+            try:
+                self.jing(tag=tag, schemas=schemas, schemafn=schemafn)
+            except:
+                errors += str(sys.exc_info()[1]).split('\n')
+        if lxml==True:
             # this throws an uncaught error if the schema cannot be parsed.
             validator = self.Validator(tag=tag, schemas=schemas, rngfn=schemafn)
             try:
                 self.assertValid(validator=validator)
             except:
                 errors += [str(sys.exc_info()[1]).strip()]
-        if jing==True:
-            try:
-                self.jing(tag=tag, schemas=schemas, schemafn=schemafn)
-            except:
-                errors += str(sys.exc_info()[1]).split('\n')
+        if schematron==True:
+            errors += self.schematron(tag=tag, schemas=schemas, schemafn=schemafn)
         return errors
 
     def isValid(self, tag=None, schemas=None):
@@ -270,6 +272,76 @@ class XML(File):
             except subprocess.CalledProcessError as e:
                 tbtext = html.unescape(str(e.output, 'UTF-8'))
                 raise RuntimeError(tbtext).with_traceback(sys.exc_info()[2]) from None
+
+    def schematron(self, tag=None, schemas=None, schemafn=None, ext='.sch'):
+        """validate the XML using Schematron; the schema might be a schematron file,
+            or it might be a RelaxNG schema that contains embedded Schematron.
+        """
+        from . import PATH
+        from .xslt import XSLT
+        schematron_path = os.path.join(PATH,'schematron','trunk','schematron','code')
+
+        # select the schema filename
+        tag = tag or self.root.tag
+        schemas = schemas or self.schemas
+        schemafn = schemafn or Schema.filename(tag, schemas, ext=ext) \
+            or Schema.filename(tag, schemas, ext='.rng') \
+            or Schema.filename(tag, schemas, ext='.rnc')
+
+        assert schemafn is not None and os.path.exists(schemafn)
+
+        # ensure that an up-to-date Schematron schema file is available.
+        schfn = File(fn=schemafn).clean_filename(ext='.sch')
+        fbase, fext = os.path.splitext(schfn)
+        if (not(os.path.exists(schfn)) 
+            or (os.path.exists(fbase+'.rnc') 
+                and File(fn=schfn).last_modified < File(fn=fbase+'.rnc').last_modified)):
+            # create the Schematron file from the .rnc
+            schfn = Schema(fn=fbase+'.rnc').schematron()
+        elif (not(os.path.exists(schfn)) 
+            or (os.path.exists(fbase+'.rng') 
+                and File(fn=schfn).last_modified < File(fn=fbase+'.rng').last_modified)):
+            # create the Schematron file from the .rng
+            schfn = Schema(fn=fbase+'.rng').schematron()
+
+        assert schfn is not None and os.path.exists(schfn)
+
+        # ensure that an up-to-date Schematron XSLT file is available        
+        sch_xslt_fn = schfn + '.xslt' 
+        if (not os.path.exists(sch_xslt_fn)
+            or File(fn=sch_xslt_fn).last_modified < File(fn=schfn).last_modified):  
+            # The Schematron XSLT doesn't exist or is out-of-date, so we need to update it
+            sch = XML(fn=schfn)
+            sch.fn = sch_xslt_fn
+
+            # We're using the XSLT 1.0 version of Schematron.
+            # even though we use XSLT 2.0+ XPath functions -- the converter doesn't actually read the patterns.
+            # (tried the XSLT 2.0 version with Saxon9HE, but Schematron assumes XSLT 1.0 compatibility,
+            # which Saxon9HE doesn't support.)
+            for xslfb in ['iso_dsdl_include.xsl', 'iso_abstract_expand.xsl', 'iso_svrl_for_xslt1.xsl']:
+                xslt = XSLT(fn=os.path.join(schematron_path, xslfb))
+                sch.root = xslt.saxon6(sch.root).getroot()
+                sch.write()
+
+            # change the XSLT version from "1.0" to "2.0". (Later we might support 3.0)
+            sch.root.set('version', '2.0')
+            sch.write()
+
+        assert sch_xslt_fn is not None and os.path.exists(sch_xslt_fn)
+
+        # validate the XML against the Schematron XSLT using Saxon 9 (XSLT 3.0 / XPath 3.1) 
+        sch_xslt = XSLT(fn=sch_xslt_fn)
+        report = XML(root=sch_xslt.saxon9(self.root).getroot())
+
+        # return the errors in the report_xml as a list of errors, with line numbers
+        errors = []
+        for failure in report.xpath(report.root, "//svrl:failed-assert", namespaces={'svrl':"http://purl.oclc.org/dsdl/svrl"}):
+            for e in self.xpath(self.root, failure.get('location')):
+                errors.append("%s:%d <%s %s>: error: %s" 
+                    % (self.fn, e.sourceline or -1, 
+                        self.tag_name(e), " ".join(['%s="%s"' % (k,v) for k,v in e.attrib.items()]), 
+                        etree.tounicode(failure, method='text').strip()))
+        return errors
 
     # == NAMESPACE == 
 
