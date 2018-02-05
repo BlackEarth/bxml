@@ -1,6 +1,6 @@
 config = {
   "name": "bxml",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "XML library",
   "url": "https://github.com/BlackEarth/bxml",
   "author": "Sean Harrison",
@@ -13,13 +13,13 @@ config = {
     "Programming Language :: Python :: 3"
   ],
   "entry_points": {},
-  "install_requires": ["bl", "bf", "lxml"],
+  "install_requires": ["bl", "bf", "lxml", "markdown"],
   "extras_require": {
     "dev": [],
     "test": []
   },
   "package_data": {
-    "bxml": ["jars/*.jar", "jars/saxon9/*.jar"]
+    "bxml": ["jars/*.jar", "jars/saxon9/*.jar", "schematron/trunk/schematron/code/*.xsl"]
   },
   "data_files": [],
   "scripts": []
