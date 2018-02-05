@@ -46,7 +46,7 @@ class Schema(Text):
         sch.write()
         return sch.fn
 
-    def xhtml(self, outfn=None, ext='.xhtml', css=None):
+    def xhtml(self, outfn=None, ext='.xhtml', css=None, **params):
         """convert the Schema to XHTML with the given output filename or with the given extension."""
         from markdown import markdown
         from bl.file import File
@@ -61,7 +61,7 @@ class Schema(Text):
         assert os.path.exists(rngfn)
         rng = XML(fn=rngfn)
         xslt = XSLT(fn=os.path.join(PATH, 'xslts', 'rng2md.xslt'))
-        md = xslt.saxon9(rng.root).strip()
+        md = xslt.saxon9(rng.root, **params).strip()
         html_body = markdown(md, 
             output_format="xhtml5", 
             extensions=[                            # see https://python-markdown.github.io/extensions/
@@ -71,13 +71,15 @@ class Schema(Text):
                 'markdown.extensions.sane_lists', 
                 'markdown.extensions.toc']).strip()
         html_text = """<html><head><meta charset="UTF-8"/><style type="text/css">
+            body {line-height:1.3}
             h1,h2,h3 {font-family:sans-serif; margin:1em 0 .25em 0}
             h1 {font-size:2rem;font-weight:normal;}
             h2 {font-size:1.2rem;font-weight:bold;}
             h3 {font-size:1.1rem;font-weight:normal;font-style:italic;}
             p {margin:0 0 .5rem 0;}
             p.subtitle {font-size:1.2rem;font-family:sans-serif;margin-bottom:1em}
-            p.code {font-size:.7rem;color:#666;}
+            p.code {font-size:.7rem;color:#666;line-height:1.0}
+            hr {border:0;border-top:1px solid #999;margin:1rem 0;}
             </style></head><body>\n""" + html_body + """\n</body></html>"""
         html = XML(fn=htmlfn, root=html_text)
         return html

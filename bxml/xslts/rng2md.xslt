@@ -8,10 +8,21 @@
 
     <xsl:output method="text" encoding="utf-8" indent="no"/>
 
-    <xsl:param name="schema_version"/>
+    <xsl:param name="software_version"/>
 
     <xsl:template match="/">
         <xsl:apply-templates select="//a:documentation | //rng:define | //sch:rule "/>
+
+        <xsl:text>&lt;hr/&gt;</xsl:text>
+        <xsl:if test="$software_version">
+            <xsl:text>&#xA;&#xA;_software version: </xsl:text>
+            <xsl:value-of select="$software_version"/>
+            <xsl:text>_;&lt;br/&gt;</xsl:text>
+        </xsl:if>
+        <xsl:text>_documentation compiled: </xsl:text>
+        <xsl:value-of select="format-dateTime(current-dateTime(), '[Y]-[M01]-[D01] [H01]:[m01]:[s01] [ZN]')"/>
+        <xsl:text>_&#xA;&#xA;</xsl:text>
+
     </xsl:template>
 
     <xsl:template match="*|comment()"/>
@@ -31,15 +42,15 @@
             <xsl:text>&#xA;&#xA;### Rule: </xsl:text>
             <xsl:value-of select="@title"/>
         </xsl:if>
-        <xsl:text>&#xA;`</xsl:text>
+        <xsl:text>&#xA;`context="</xsl:text>
         <xsl:value-of select="@context"></xsl:value-of>
-        <xsl:text>`&#xA;{: .code}</xsl:text>
+        <xsl:text>"`&#xA;{: .code}</xsl:text>
         <xsl:for-each select="sch:assert">
             <xsl:text>&#xA;&#xA;* </xsl:text>
             <xsl:value-of select="."/>
-            <xsl:text>&#xA;&#xA;    `</xsl:text>
+            <xsl:text>&#xA;&#xA;    `test="</xsl:text>
             <xsl:value-of select="@test"/>
-            <xsl:text>`&#xA;    {: .code}</xsl:text>
+            <xsl:text>"`&#xA;    {: .code}</xsl:text>
         </xsl:for-each>
     </xsl:template>
 
