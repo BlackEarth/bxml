@@ -5,8 +5,6 @@
 
     <xsl:output method="xml" encoding="utf-8" indent="yes"/>
 
-    <xsl:param name="software_version"/>
-
     <xsl:template match="/">
     	<sch:schema>
     		<xsl:apply-templates select="//sch:ns"/>

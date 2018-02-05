@@ -46,6 +46,42 @@ class Schema(Text):
         sch.write()
         return sch.fn
 
+    def xhtml(self, outfn=None, ext='.xhtml', css=None):
+        """convert the Schema to XHTML with the given output filename or with the given extension."""
+        from markdown import markdown
+        from bl.file import File
+        from .xslt import XSLT
+        from . import XML, PATH
+        rncfn = os.path.splitext(self.fn)[0] + '.rnc'
+        rngfn = os.path.splitext(self.fn)[0] + '.rng'
+        htmlfn = os.path.splitext(self.fn)[0] + '.html'
+        if self.fn==rncfn or os.path.exists(rncfn):
+            if not(os.path.exists(rngfn)) or File(fn=rngfn).last_modified < File(fn=rncfn).last_modified:
+                rngfn = Schema(rncfn).trang(ext='.rng')
+        assert os.path.exists(rngfn)
+        rng = XML(fn=rngfn)
+        xslt = XSLT(fn=os.path.join(PATH, 'xslts', 'rng2md.xslt'))
+        md = xslt.saxon9(rng.root).strip()
+        html_body = markdown(md, 
+            output_format="xhtml5", 
+            extensions=[                            # see https://python-markdown.github.io/extensions/
+                'markdown.extensions.extra',    
+                'markdown.extensions.admonition', 
+                'markdown.extensions.headerid', 
+                'markdown.extensions.sane_lists', 
+                'markdown.extensions.toc']).strip()
+        html_text = """<html><head><meta charset="UTF-8"/><style type="text/css">
+            h1,h2,h3 {font-family:sans-serif; margin:1em 0 .25em 0}
+            h1 {font-size:2rem;font-weight:normal;}
+            h2 {font-size:1.2rem;font-weight:bold;}
+            h3 {font-size:1.1rem;font-weight:normal;font-style:italic;}
+            p {margin:0 0 .5rem 0;}
+            p.subtitle {font-size:1.2rem;font-family:sans-serif;margin-bottom:1em}
+            p.code {font-size:.7rem;color:#666;}
+            </style></head><body>\n""" + html_body + """\n</body></html>"""
+        html = XML(fn=htmlfn, root=html_text)
+        return html
+
     @classmethod
     def from_tag(cls, tag, schemas, ext='.rnc'):
         """load a schema using an element's tag. schemas can be a string or a list of strings"""
