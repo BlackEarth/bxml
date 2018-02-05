@@ -59,7 +59,7 @@ class XSLT(XML):
                 error = html.unescape(str(e.output, 'UTF-8'))
                 raise RuntimeError(error).with_traceback(sys.exc_info()[2]) from None
 
-            if self.find(self.root, "xsl:output").get('method')=='xml':
+            if self.find(self.root, "xsl:output") is None or self.find(self.root, "xsl:output").get('method')=='xml':
                 return etree.parse(outfn)
             else:
                 return open(outfn, 'rb').read().decode('utf-8')
@@ -90,7 +90,7 @@ class XSLT(XML):
                 error = html.unescape(str(e.output, 'UTF-8'))
                 raise RuntimeError(error).with_traceback(sys.exc_info()[2]) from None
             
-            if self.find(self.root, "xsl:output").get('method')=='xml':
+            if self.find(self.root, "xsl:output") is None or self.find(self.root, "xsl:output").get('method')=='xml':
                 return etree.parse(outfn)
             else:
                 return open(outfn, 'rb').read().decode('utf-8')
