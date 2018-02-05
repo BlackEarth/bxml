@@ -15,6 +15,7 @@ XSL_TEMPLATE = """<xsl:stylesheet version="1.0" %s%s><xsl:output method="xml"/><
 class XSLT(XML):
     """class for holding, manipulating, and using XSL documents"""
 
+    NS = {'xsl': 'http://www.w3.org/1999/XSL/Transform'}
     TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S %Z"       # format for timestamp params
 
     CACHE = Dict()              # XSLT.CACHE = application-level cache. 
@@ -51,12 +52,18 @@ class XSLT(XML):
             cmd = ['java', '-jar', saxon6path, '-o', outfn, srcfn, xslfn] \
                 + ["%s=%r" % (key, params[key]) for key in params.keys()]
             log.debug("saxon6: %r " % cmd)
+
             try:
                 subprocess.check_output(cmd)
             except subprocess.CalledProcessError as e:
                 error = html.unescape(str(e.output, 'UTF-8'))
                 raise RuntimeError(error).with_traceback(sys.exc_info()[2]) from None
-            return etree.parse(outfn)
+
+            if self.find(self.root, "xsl:output").get('method')=='xml':
+                return etree.parse(outfn)
+            else:
+                return open(outfn, 'rb').read().decode('utf-8')
+
 
     def saxon9(self, elem, **params):
         """Use Saxon9 to process the element. 
@@ -76,12 +83,17 @@ class XSLT(XML):
             cmd = ['java', '-jar', saxon9path, '-o:%s' % outfn, '-s:%s' % srcfn, '-xsl:%s' % xslfn] \
                 + ['%s=%s' % (key, params[key]) for key in params.keys()]
             log.debug("saxon9: %r " % cmd)
+            
             try:
                 subprocess.check_output(cmd)
             except subprocess.CalledProcessError as e:
                 error = html.unescape(str(e.output, 'UTF-8'))
                 raise RuntimeError(error).with_traceback(sys.exc_info()[2]) from None
-            return etree.parse(outfn)
+            
+            if self.find(self.root, "xsl:output").get('method')=='xml':
+                return etree.parse(outfn)
+            else:
+                return open(outfn, 'rb').read().decode('utf-8')
 
     def append(self, s, *args):
         if type(s) == etree._Element:
