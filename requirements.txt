@@ -1,5 +1,4 @@
-bl
-bf
-lxml
-markdown
-
+-e git+https://github.com/BlackEarth/bf.git@396da79fc7324deeda905a5b02797036bb7595c7#egg=bf
+-e git+https://github.com/BlackEarth/bl.git@858401c26255e7e421c2baf34804c3b73bfe5363#egg=bl
+lxml==4.1.1
+Markdown==2.6.11
