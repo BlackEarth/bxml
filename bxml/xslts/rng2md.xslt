@@ -34,23 +34,23 @@
 
     <xsl:template match="rng:define">
         <xsl:text>&#xA;&#xA;## </xsl:text>
-        <xsl:value-of select="@name"></xsl:value-of>
+        <xsl:value-of select="replace(@name,'_',' ')"></xsl:value-of>
     </xsl:template>
 
     <xsl:template match="sch:rule">
         <xsl:if test="@title">
-            <xsl:text>&#xA;&#xA;### Rule: </xsl:text>
+            <xsl:text>&#xA;&#xA;### </xsl:text>
             <xsl:value-of select="@title"/>
         </xsl:if>
-        <xsl:text>&#xA;`context="</xsl:text>
+        <xsl:text>&#xA;context="</xsl:text>
         <xsl:value-of select="@context"></xsl:value-of>
-        <xsl:text>"`&#xA;{: .code}</xsl:text>
+        <xsl:text>"&#xA;{: .code}</xsl:text>
         <xsl:for-each select="sch:assert">
             <xsl:text>&#xA;&#xA;* </xsl:text>
             <xsl:value-of select="."/>
-            <xsl:text>&#xA;&#xA;    `test="</xsl:text>
+            <xsl:text>&#xA;&#xA;    test="</xsl:text>
             <xsl:value-of select="@test"/>
-            <xsl:text>"`&#xA;    {: .code}</xsl:text>
+            <xsl:text>"&#xA;    {: .code}</xsl:text>
         </xsl:for-each>
     </xsl:template>
 
