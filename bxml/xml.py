@@ -573,23 +573,23 @@ class XML(File):
         elems = XML.xpath(new_node, xpath, namespaces=namespaces)
         elems.reverse()
         for elem in elems:
-            next = elem.getnext()
+            nxt = elem.getnext()
             if elem.attrib == {}: 
                 XML.replace_with_contents(elem)
-            elif elem.tail in [None, ''] and next is not None \
-            and elem.tag==next.tag and elem.attrib==next.attrib:
-                # merge next with elem
-                # -- append next.text to elem last child tail
+            elif elem.tail in [None, ''] and nxt is not None \
+            and elem.tag==nxt.tag and elem.attrib==nxt.attrib:
+                # merge nxt with elem
+                # -- append nxt.text to elem last child tail
                 if len(elem.getchildren()) > 0:
                     lastch = elem.getchildren()[-1]
-                    lastch.tail = (lastch.tail or '') + (next.text or '')
+                    lastch.tail = (lastch.tail or '') + (nxt.text or '')
                 else:
-                    elem.text = (elem.text or '') + (next.text or '')
-                # -- append next children to elem children
-                for ch in next.getchildren():
+                    elem.text = (elem.text or '') + (nxt.text or '')
+                # -- append nxt children to elem children
+                for ch in nxt.getchildren():
                     elem.append(ch)
-                # -- remove next
-                XML.remove(next, leave_tail=True)
+                # -- remove nxt
+                XML.remove(nxt, leave_tail=True)
         return new_node
 
     # == Nesting Manipulations == 
