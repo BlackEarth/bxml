@@ -11,7 +11,7 @@
     <xsl:param name="software_version"/>
 
     <xsl:template match="/">
-        <xsl:apply-templates select="//a:documentation | //rng:define | //sch:rule "/>
+        <xsl:apply-templates select="//a:documentation | //a:definition | //rng:define | //sch:rule "/>
 
         <xsl:text>&lt;hr/&gt;</xsl:text>
         <xsl:if test="$software_version">
@@ -30,6 +30,12 @@
     <xsl:template match="a:documentation">
         <xsl:text>&#xA;&#xA;</xsl:text> 
         <xsl:value-of select="text()"/>
+    </xsl:template>
+
+    <xsl:template match="a:definition">
+        <xsl:text>&#xA;```&#xA;</xsl:text>
+        <xsl:value-of select="."></xsl:value-of>
+        <xsl:text>&#xA;```&#xA;</xsl:text>
     </xsl:template>
 
     <xsl:template match="rng:define">

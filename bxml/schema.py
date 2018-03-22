@@ -1,6 +1,8 @@
 
-import os, re, sys, subprocess, tempfile
+import os, logging, re, sys, subprocess, tempfile
 from bl.text import Text
+
+log = logging.getLogger(__name__)
 
 class Schema(Text):
 
@@ -49,17 +51,47 @@ class Schema(Text):
     def xhtml(self, outfn=None, ext='.xhtml', css=None, **params):
         """convert the Schema to XHTML with the given output filename or with the given extension."""
         from markdown import markdown
+        from copy import deepcopy
         from bl.file import File
         from .xslt import XSLT
-        from . import XML, PATH
+        from .rng import RNG
+        from . import XML, PATH, etree
         rncfn = os.path.splitext(self.fn)[0] + '.rnc'
         rngfn = os.path.splitext(self.fn)[0] + '.rng'
         htmlfn = os.path.splitext(self.fn)[0] + '.html'
         if self.fn==rncfn or os.path.exists(rncfn):
-            if not(os.path.exists(rngfn)) or File(fn=rngfn).last_modified < File(fn=rncfn).last_modified:
-                rngfn = Schema(rncfn).trang(ext='.rng')
+            rngfn = Schema(rncfn).trang(ext='.rng')
         assert os.path.exists(rngfn)
-        rng = XML(fn=rngfn)
+
+        # convert all <r:define> elements into a <a:definition> blocks containing a compact syntax alternative
+        rng = RNG(fn=rngfn)
+        for define in rng.xpath(rng.root, "//r:define"):
+            log.debug("%s %r" % (rng.tag_name(define), define.attrib))
+            tempdefine = deepcopy(define)
+            tempgrammar = deepcopy(rng.root); tempgrammar.text = '\n'
+            for ch in tempgrammar.getchildren(): rng.remove(ch)
+            tempgrammar.insert(0, tempdefine)
+            for adoc in rng.xpath(tempdefine, ".//a:documentation | .//a:definition"):
+                rng.remove(adoc)
+            with tempfile.TemporaryDirectory() as tempdir:
+                x = XML(fn=os.path.join(tempdir, 'define.rng'), root=tempgrammar)
+                x.write()
+                newfn = Schema(x.fn).trang(ext='.rnc')
+                txt = open(newfn, 'rb').read().decode('utf-8')
+                if '\n\n' in txt:
+                    txt = txt[txt.index('\n\n')+1:].strip()
+            adef = etree.Element("{%(a)s}definition" % RNG.NS)
+            adef.text = txt
+            adef.tail = '\n\t\t'
+            log.debug(adef.text)
+            annotations = rng.xpath(define, "a:*")
+            if len(annotations) > 0:
+                index = define.index(annotations[-1])+1
+            else:
+                index = 0
+            define.insert(index, adef)
+        rng.write()
+
         xslt = XSLT(fn=os.path.join(PATH, 'xslts', 'rng2md.xslt'))
         md = xslt.saxon9(rng.root, **params).strip()
         html_body = markdown(md, 
@@ -79,6 +111,7 @@ class Schema(Text):
             p {margin:0 0 .5rem 0;}
             p.subtitle {font-size:1.2rem;font-family:sans-serif;margin-bottom:1em}
             p.code {font-family:monospace;font-size:.6rem;color:#666;line-height:1.1}
+            pre {font-family:monospace;font-size:.6rem;color:#666;line-height:1.1;margin-left:1.5rem;}
             hr {border:0;border-top:1px solid #999;margin:1rem 0;}
             </style></head><body>\n""" + html_body + """\n</body></html>"""
         html = XML(fn=htmlfn, root=html_text)
