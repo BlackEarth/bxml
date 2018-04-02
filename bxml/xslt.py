@@ -10,7 +10,7 @@ from . import JARS
 log = logging.getLogger(__name__)
 
 XSL_NAMESPACE = "xmlns:xsl='http://www.w3.org/1999/XSL/Transform'"
-XSL_TEMPLATE = """<xsl:stylesheet version="1.0" %s%s><xsl:output method="xml"/></xsl:stylesheet>"""
+XSL_TEMPLATE = """<xsl:stylesheet version="%s" %s%s><xsl:output method="xml"/></xsl:stylesheet>"""
 
 class XSLT(XML):
     """class for holding, manipulating, and using XSL documents"""
@@ -130,14 +130,14 @@ class XSLT(XML):
     # == TEMPLATE METHODS == 
     
     @classmethod
-    def stylesheet(cls, *args, namespaces=None):
+    def stylesheet(cls, *args, namespaces=None, version='1.0'):
         if namespaces is not None:
             nst = ' ' + ' '.join(["xmlns:%s='%s'" % (k, namespaces[k]) for k in namespaces.keys() if k is not None])
             if None in namespaces.keys():
                 nst += " xmlns='%s'" % namespaces[None]
         else:
             nst = ''
-        xt = XML.Element(XSL_TEMPLATE % (XSL_NAMESPACE, nst))
+        xt = XML.Element(XSL_TEMPLATE % (version, XSL_NAMESPACE, nst))
         for arg in [a for a in args if a is not None]:
             xt.append(arg)
         return xt
