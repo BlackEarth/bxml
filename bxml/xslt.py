@@ -24,7 +24,6 @@ class XSLT(XML):
     
     def __init__(self, cache=True, **kwargs):
         XML.__init__(self, **kwargs)
-        self.__xslt = self.make_xslt(cache=cache)
         
     def __call__(self, elem, **params):
         # prepare string parameters -- see http://lxml.de/xpathxslt.html#stylesheet-parameters
@@ -33,7 +32,8 @@ class XSLT(XML):
         for key in params:
             if type(params[key]) in [str, bytes]:
                 params[key] = etree.XSLT.strparam(params[key])
-        return self.__xslt(elem, **params)
+        __xslt = self.make_xslt(cache=cache)
+        return __xslt(elem, **params)
 
     def saxon6(self, elem, **params):
         """Use Saxon6 to process the element. 
