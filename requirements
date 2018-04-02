@@ -1,4 +1,4 @@
 #!/bin/bash
 cd `dirname $0`; 
 source venv
-pip freeze | egrep "(bl|bf|lxml|Markdown)" >requirements.txt
+pip freeze | egrep --invert-match "bxml" >requirements.txt
