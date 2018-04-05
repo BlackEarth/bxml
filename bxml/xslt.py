@@ -25,7 +25,7 @@ class XSLT(XML):
     def __init__(self, cache=True, **kwargs):
         XML.__init__(self, **kwargs)
         
-    def __call__(self, elem, **params):
+    def __call__(self, elem, cache=True, **params):
         # prepare string parameters -- see http://lxml.de/xpathxslt.html#stylesheet-parameters
         if 'timestamp' not in params.keys():     # always include a timestamp param
             params['timestamp'] = time.strftime(self.TIMESTAMP_FORMAT)
