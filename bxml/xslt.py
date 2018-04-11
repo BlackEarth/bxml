@@ -39,6 +39,7 @@ class XSLT(XML):
         """Use Saxon6 to process the element. 
         If the XSLT has a filename (fn), use that. Otherwise, make temp.
         """
+        java = os.environ.get('java') or 'java'
         saxon6path = os.path.join(JARS, 'saxon.jar')   # saxon 6.5.5, included with jing and trang
         with tempfile.TemporaryDirectory() as tempdir:
             if self.fn is None:
@@ -49,7 +50,7 @@ class XSLT(XML):
             srcfn = os.path.join(tempdir, "src.xml")
             outfn = os.path.join(tempdir, "out.xml")
             XML(fn=srcfn, root=elem).write()
-            cmd = ['java', '-jar', saxon6path, '-o', outfn, srcfn, xslfn] \
+            cmd = [java, '-jar', saxon6path, '-o', outfn, srcfn, xslfn] \
                 + ["%s=%r" % (key, params[key]) for key in params.keys()]
             log.debug("saxon6: %r " % cmd)
 
@@ -70,6 +71,7 @@ class XSLT(XML):
         If the XSLT has a filename (fn), use that. Otherwise, make temp.
         Returns an lxml.etree._ElementTree (not _Element)
         """
+        java = os.environ.get('java') or 'java'
         saxon9path = os.path.join(JARS, 'saxon9', 'saxon9he.jar')   # saxon 9
         with tempfile.TemporaryDirectory() as tempdir:
             if self.fn is None:
@@ -80,7 +82,7 @@ class XSLT(XML):
             srcfn = os.path.join(tempdir, "src.xml")
             outfn = os.path.join(tempdir, "out.xml")
             XML(fn=srcfn, root=elem).write()
-            cmd = ['java', '-jar', saxon9path, '-o:%s' % outfn, '-s:%s' % srcfn, '-xsl:%s' % xslfn] \
+            cmd = [java, '-jar', saxon9path, '-o:%s' % outfn, '-s:%s' % srcfn, '-xsl:%s' % xslfn] \
                 + ['%s=%s' % (key, params[key]) for key in params.keys()]
             log.debug("saxon9: %r " % cmd)
             

@@ -252,12 +252,13 @@ class XML(File):
     def jing(self, tag=None, schemas=None, schemafn=None, ext='.rnc'):
         """use the (included) jing library to validate the XML."""
         from . import JARS
+        java = os.environ.get('java') or 'java'
         jingfn = os.path.join(JARS, 'jing.jar')
         tag = tag or self.root.tag
         schemas = schemas or self.schemas
         schemafn = schemafn or Schema.filename(tag, schemas, ext=ext)
         if schemafn is not None:
-            cmd = ['java', '-jar', jingfn, '-c', schemafn]
+            cmd = [java, '-jar', jingfn, '-c', schemafn]
             if os.path.splitext(schemafn)[-1].lower() != '.rnc':
                 cmd.pop(cmd.index('-c'))
             try:

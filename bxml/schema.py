@@ -17,12 +17,13 @@ class Schema(Text):
         SIDE EFFECT: creates a new file on the filesystem.
         """
         from . import JARS
+        java = os.environ.get('java') or 'java'
         trang_jar = os.path.join(JARS, 'trang.jar')
         outfn = outfn or os.path.splitext(self.fn)[0] + ext
         stderr = tempfile.NamedTemporaryFile()
         try:
             result = subprocess.check_call(
-                ["java", "-jar", trang_jar, self.fn, outfn],
+                [java, "-jar", trang_jar, self.fn, outfn],
                 universal_newlines=True,
                 stderr=stderr)
         except subprocess.CalledProcessError as e:
