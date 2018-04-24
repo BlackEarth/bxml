@@ -263,8 +263,7 @@ class XML(File):
                 cmd.pop(cmd.index('-c'))
             try:
                 fn = self.fn
-                tempf = None
-                if fn is None:
+                if fn is None or not os.path.exists(fn):
                     tempf = tempfile.NamedTemporaryFile()
                     fn = tempf.name
                     tempf.close()
