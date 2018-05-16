@@ -444,16 +444,16 @@ class XML(File):
     def as_dict(self, elem=None, ignore_whitespace=True, namespaces=True):
         """Create a generalized dict output from this elem (default self.root).
         Rules:
-            * Elements are objects with a single key, which is the tag.
-                + if namespaces==True, the namespace or its prefix is included in the tag.
-            * The value of the single attribute is a list. The elements of the list are:
-                + a dict containing attributes (empty if none)
-                + zero or more strings or objects. 
-                    + text is represented as strings
-                    + elements are represented as objects
-            * If ignore_whitespace==True, then whitespace-only element text and tail will be omitted.
-            * Comments and processing instructions are ignored.
-            * The "tail" of the given element (or XML.root) node is also ignored.
+        * Elements are objects with a single key, which is the tag.
+            + if namespaces==True, the namespace or its prefix is included in the tag.
+        * The value of the single attribute is a list. The elements of the list are:
+            + a dict containing attributes (empty if none)
+            + zero or more strings or objects. 
+                + text is represented as strings
+                + elements are represented as objects
+        * If ignore_whitespace==True, then whitespace-only element text and tail will be omitted.
+        * Comments and processing instructions are ignored.
+        * The "tail" of the given element (or XML.root) node is also ignored.
         """
         if elem is None: elem = self.root
         tag = self.tag_dict_key(elem.tag, namespaces=namespaces)
