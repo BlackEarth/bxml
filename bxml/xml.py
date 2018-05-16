@@ -420,40 +420,52 @@ class XML(File):
 
     # == CONVERSIONS == 
 
-    def as_json(self, elem=None, indent=None, ignore_whitespace=True, namespaces=False):
+    def as_json(self, elem=None, indent=None, ignore_whitespace=True, namespaces=True):
         return json.dumps(
             self.as_dict(elem=elem, ignore_whitespace=ignore_whitespace, namespaces=namespaces), 
             indent=indent)
 
-    def as_dict(self, elem=None, ignore_whitespace=True, namespaces=False):
+    def dict_tag(self, elem_tag, namespaces=True):
+        tag = self.tag_name(elem_tag)
+        ns = self.tag_namespace(elem_tag)
+        if namespaces==True and ns is not None:
+            if ns in self.NS.values():
+                # use "prefix:..." form
+                prefix = "%s:" % list(self.NS.keys())[list(self.NS.values()).index(ns)]
+            else:
+                # use "{namespace}..." form
+                prefix = "{%s}" % ns
+            tag = prefix + tag
+        return tag
+
+    def as_dict(self, elem=None, ignore_whitespace=True, namespaces=True):
         """Create a generalized dict output from this elem (default self.root).
         Rules:
-            * Elements are objects with a single attribute, which is the tag name.
+            * Elements are objects with a single key, which is the tag.
+                + if namespaces==True, the namespace or its prefix is included in the tag.
             * The value of the single attribute is a list. The elements of the list are:
-                o a dict containing attributes
+                + a dict containing attributes (empty if none)
                 + zero or more strings or objects. 
-                    - text is represented as strings
-                    - elements are represented as objects
-        If ignore_whitespace==True, then whitespace-only element text and tail will be omitted.
-        If namespaces==True, then include the namespaces in the element/attribute names.
-        Comments and processing instructions are ignored.
-        The "tail" of the root node is also ignored.
+                    + text is represented as strings
+                    + elements are represented as objects
+            * If ignore_whitespace==True, then whitespace-only element text and tail will be omitted.
+            * Comments and processing instructions are ignored.
+            * The "tail" of the given element (or XML.root) node is also ignored.
         """
         if elem is None: elem = self.root
-        if namespaces == False:
-            tag = re.sub("^\{[^\}]*\}", "", elem.tag)
-        else:
-            tag = elem.tag
-        attrib = Dict(**elem.attrib)
-        if namespaces == False:
-            for key in attrib:
-                newkey = re.sub("^\{[^\}]*\}", "", key)
-                attrib[newkey] = attrib.pop(key)
-        d = Dict(**{tag: [attrib]})
+        tag = self.dict_tag(elem.tag, namespaces=namespaces)
+        d = Dict(**{tag: []})
+        attrib = Dict(**{
+            self.dict_tag(k, namespaces=namespaces): elem.attrib[k]
+            for k in elem.attrib.keys()
+        })
+        d[tag].append(attrib)
         if elem.text is not None and (elem.text.strip() != '' or ignore_whitespace != True): 
             d[tag].append(elem.text)
-        for ch in [e for e in elem if type(e) == etree._Element]:   # *** IGNORE EVERYTHING EXCEPT ELEMENTS ***
-            d[tag].append(self.as_dict(elem=ch))
+        for ch in [e for e in elem.getchildren() if isinstance(e, etree._Element)]:   # *** IGNORE EVERYTHING EXCEPT ELEMENTS ***
+            chdict = self.as_dict(elem=ch, ignore_whitespace=ignore_whitespace, namespaces=namespaces)
+            if chdict != {}:
+                d[tag].append(chdict)
             if elem.tail is not None and (elem.tail.strip() != '' or ignore_whitespace != True):
                 d[tag].append(elem.tail)
         return d
