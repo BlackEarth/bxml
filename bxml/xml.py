@@ -33,8 +33,10 @@ class XML(File):
         # set up the root element
         if root is None and tree is not None:
             self.root = self.tree.getroot()
-        elif type(root) in [str, bytes]:
+        elif isinstance(root, str) or isinstance(root, bytes):
             self.root = XML.fromstring(root, parser=parser)
+        elif isinstance(root, dict):
+            self.root = self.from_dict(root)
         elif root is not None:
             self.root = root
         elif type(fn) in [str, bytes] and os.path.isfile(fn):                   # read from fn
@@ -353,13 +355,14 @@ class XML(File):
     @classmethod
     def tag_namespace(cls, tag):
         """return the namespace for a given tag, or '' if no namespace given"""
-        md = re.match("^(?:\{([^\}]*)\})?", tag)
-        return md.group(1) # None if no namespace in tag
+        md = re.match("^(?:\{([^\}]*)\})", tag)
+        if md is not None:
+            return md.group(1)
 
     @classmethod
     def tag_name(cls, tag):
         """return the name of the tag, with the namespace removed"""
-        if type(tag) == etree._Element:
+        while isinstance(tag, etree._Element):
             tag = tag.tag
         return tag.split('}')[-1]
 
@@ -462,7 +465,7 @@ class XML(File):
         d[tag].append(attrib)
         if elem.text is not None and (elem.text.strip() != '' or ignore_whitespace != True): 
             d[tag].append(elem.text)
-        for ch in [e for e in elem.getchildren() if isinstance(e, etree._Element)]:   # *** IGNORE EVERYTHING EXCEPT ELEMENTS ***
+        for ch in [e for e in elem.getchildren() if type(e) == etree._Element]:   # *** IGNORE EVERYTHING EXCEPT ELEMENTS ***
             chdict = self.as_dict(elem=ch, ignore_whitespace=ignore_whitespace, namespaces=namespaces)
             if chdict != {}:
                 d[tag].append(chdict)
