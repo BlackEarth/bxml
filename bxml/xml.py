@@ -473,6 +473,53 @@ class XML(File):
                 d[tag].append(elem.tail)
         return d
 
+    def dict_key_tag(self, key):
+        """convert a dict key into an element or attribute name"""
+        ns = self.tag_namespace(key)
+        tag = self.tag_name(key)
+        if ns is None and ':' in key: 
+            prefix, tag = key.split(':')
+            if prefix in self.NS.keys():
+                ns = self.NS[prefix]
+        if ns is not None:
+            tag = "{%s}%s" % (ns, tag)
+        return tag
+
+    def from_dict(self, element_data):
+        """reverse of XML.as_dict(): Create a new XML element from the given element_data.
+        Rules:
+        * element_data is a dict with one key, which is the name of the element
+            * The element name can be in "prefix:..."" form, if the namespace prefix is in self.NS
+            * The element name can also be in "{namespace}..." form
+        * element_data[key] is a list.
+        * element_data[key][0] is a dict with the element's attributes
+        * element_data[key][1:] are strings and dicts
+            * strings are interpreted as text
+            * dicts are interpreted as elements, which must follow the rules of element_data.
+        * namespaces are applied from self.NS
+        """
+        from .builder import Builder
+        B = Builder(default=self.DEFAULT_NS, **self.NS)
+        keys = list(element_data.keys())
+        assert len(keys)==1
+        key = keys[0]
+        elem_tag = self.dict_key_tag(key)
+        elem = B(elem_tag)
+        # attributes
+        for k, v in element_data[key][0].items():
+            attr_name = self.dict_key_tag(k)
+            elem.set(attr_name, v)
+        # text and child elements
+        for node in element_data[key][1:]:
+            if type(node)==str:
+                if len(elem)==0:
+                    elem.text = node
+                else:
+                    elem[-1].tail = node
+            else:
+                elem.append(self.from_dict(node))
+        return elem
+
     # == TREE MANIPULATIONS == 
 
     @classmethod
