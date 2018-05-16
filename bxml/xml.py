@@ -425,7 +425,7 @@ class XML(File):
             self.as_dict(elem=elem, ignore_whitespace=ignore_whitespace, namespaces=namespaces), 
             indent=indent)
 
-    def dict_tag(self, elem_tag, namespaces=True):
+    def tag_dict_key(self, elem_tag, namespaces=True):
         tag = self.tag_name(elem_tag)
         ns = self.tag_namespace(elem_tag)
         if namespaces==True and ns is not None:
@@ -453,10 +453,10 @@ class XML(File):
             * The "tail" of the given element (or XML.root) node is also ignored.
         """
         if elem is None: elem = self.root
-        tag = self.dict_tag(elem.tag, namespaces=namespaces)
+        tag = self.tag_dict_key(elem.tag, namespaces=namespaces)
         d = Dict(**{tag: []})
         attrib = Dict(**{
-            self.dict_tag(k, namespaces=namespaces): elem.attrib[k]
+            self.tag_dict_key(k, namespaces=namespaces): elem.attrib[k]
             for k in elem.attrib.keys()
         })
         d[tag].append(attrib)
