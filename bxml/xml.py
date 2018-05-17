@@ -84,6 +84,10 @@ class XML(File):
         return String(href).identifier()
 
     @classmethod
+    def generate_id(C, element):
+        return "%s_%s" % (C.tag_name(element), random_id(8))
+
+    @classmethod
     def xpath(C, node, path, namespaces=None, extensions=None, smart_strings=True, **args):
         """shortcut to Element.xpath()"""
         return node.xpath(path, namespaces=namespaces or C.NS, extensions=extensions, smart_strings=smart_strings, **args)
