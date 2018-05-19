@@ -1,5 +1,5 @@
 
-import os, re, time, sys, subprocess, html, json, tempfile, traceback
+import os, re, time, sys, subprocess, html, json, tempfile, traceback, logging
 from copy import deepcopy
 from lxml import etree
 from bl.dict import Dict
@@ -8,6 +8,8 @@ from bl.string import String
 from bl.file import File
 
 from .schema import Schema
+
+log = logging.getLogger(__name__)
 
 class XML(File):
     ROOT_TAG = None
@@ -450,9 +452,10 @@ class XML(File):
         Rules:
         * Elements are objects with a single key, which is the tag.
             + if namespaces==True, the namespace or its prefix is included in the tag.
-        * The value of the single attribute is a list. The elements of the list are:
-            + a dict containing attributes (empty if none)
-            + zero or more strings or objects. 
+        * The value is an object:
+            + '@name' = attribute with name="value", value is string
+            + 'text' = text string
+            + 'children' = children list, consisting of 0 or more text or element nodes:
                 + text is represented as strings
                 + elements are represented as objects
         * If ignore_whitespace==True, then whitespace-only element text and tail will be omitted.
@@ -461,35 +464,39 @@ class XML(File):
         """
         if elem is None: elem = self.root
         tag = self.tag_dict_key(elem.tag, namespaces=namespaces)
-        d = Dict(**{tag: []})
-        attrib = Dict(**{
-            self.tag_dict_key(k, namespaces=namespaces): elem.attrib[k]
+        d = Dict(**{tag: {}})
+        d[tag].update(**{
+            '@'+self.tag_dict_key(k, namespaces=namespaces): elem.attrib[k]
             for k in elem.attrib.keys()
         })
-        d[tag].append(attrib)
-        if elem.text is not None and (elem.text.strip() != '' or ignore_whitespace != True): 
-            d[tag].append(elem.text)
+        nodes = []
+        if elem.text is not None and (elem.text.strip() != '' or ignore_whitespace != True):
+            nodes.append(str(elem.text))
         for ch in [e for e in elem.getchildren() if type(e) == etree._Element]:   # *** IGNORE EVERYTHING EXCEPT ELEMENTS ***
-            chdict = self.as_dict(elem=ch, ignore_whitespace=ignore_whitespace, namespaces=namespaces)
-            if chdict != {}:
-                d[tag].append(chdict)
-            if elem.tail is not None and (elem.tail.strip() != '' or ignore_whitespace != True):
-                d[tag].append(elem.tail)
+            nodes.append(
+                self.as_dict(elem=ch, ignore_whitespace=ignore_whitespace, namespaces=namespaces))
+            if ch.tail is not None and (ch.tail.strip() != '' or ignore_whitespace != True):
+                d[tag].append(ch.tail)
+        if nodes != []:
+            d[tag]['nodes'] = nodes
         return d
 
-    def dict_key_tag(self, key):
+    @classmethod
+    def dict_key_tag(Class, key, namespaces=None):
         """convert a dict key into an element or attribute name"""
-        ns = self.tag_namespace(key)
-        tag = self.tag_name(key)
+        namespaces = namespaces or Class.NS
+        ns = Class.tag_namespace(key)
+        tag = Class.tag_name(key)
         if ns is None and ':' in key: 
             prefix, tag = key.split(':')
-            if prefix in self.NS.keys():
-                ns = self.NS[prefix]
+            if prefix in namespaces.keys():
+                ns = namespaces[prefix]
         if ns is not None:
             tag = "{%s}%s" % (ns, tag)
         return tag
 
-    def from_dict(self, element_data):
+    @classmethod
+    def from_dict(Class, element_data, fn=None):
         """reverse of XML.as_dict(): Create a new XML element from the given element_data.
         Rules:
         * element_data is a dict with one key, which is the name of the element
@@ -503,25 +510,29 @@ class XML(File):
         * namespaces are applied from self.NS
         """
         from .builder import Builder
-        B = Builder(default=self.DEFAULT_NS, **self.NS)
+        B = Builder(default=Class.DEFAULT_NS, **Class.NS)
         keys = list(element_data.keys())
         assert len(keys)==1
         key = keys[0]
-        elem_tag = self.dict_key_tag(key)
+        elem_tag = Class.dict_key_tag(key)
         elem = B(elem_tag)
-        # attributes
-        for k, v in element_data[key][0].items():
-            attr_name = self.dict_key_tag(k)
-            elem.set(attr_name, v)
-        # text and child elements
-        for node in element_data[key][1:]:
-            if type(node)==str:
-                if len(elem)==0:
-                    elem.text = node
-                else:
-                    elem[-1].tail = node
+        for k in element_data[key].keys():
+            # attributes
+            if k[0]=='@':
+                attr_name = Class.dict_key_tag(k[1:])
+                elem.set(attr_name, element_data[key][k])
+            elif k=='nodes':
+                for node in element_data[key][k]:
+                    if type(node)==str:
+                        if len(elem)==0:
+                            elem.text = node
+                        else:
+                            elem[-1].tail = node
+                    else:
+                        child_elem = Class.from_dict(node)
+                        elem.append(child_elem)
             else:
-                elem.append(self.from_dict(node))
+                raise ValueError('unsupported data: %r: %r' % (k, element_data[key][k]))
         return elem
 
     # == TREE MANIPULATIONS == 
