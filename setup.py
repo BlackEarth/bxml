@@ -1,28 +1,30 @@
 config = {
-  "name": "bxml",
-  "version": "2.2.0",
-  "description": "XML library",
-  "url": "https://github.com/BlackEarth/bxml",
-  "author": "Sean Harrison",
-  "author_email": "sah@blackearthgroup.com",
-  "license": "LGPL 3.0",
-  "classifiers": [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
-    "Programming Language :: Python :: 3"
-  ],
-  "entry_points": {},
-  "install_requires": ["bl", "bf", "lxml", "markdown"],
-  "extras_require": {
-    "dev": [],
-    "test": []
-  },
-  "package_data": {
-    "bxml": ["jars/*.jar", "jars/saxon9/*.jar", "schematron/trunk/schematron/code/*.xsl"]
-  },
-  "data_files": [],
-  "scripts": []
+    "name": "bxml",
+    "version": "2.2.2",
+    "description": "XML library",
+    "url": "https://github.com/BlackEarth/bxml",
+    "author": "Sean Harrison",
+    "author_email": "sah@blackearthgroup.com",
+    "license": "LGPL 3.0",
+    "classifiers": [
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+        "Programming Language :: Python :: 3",
+    ],
+    "entry_points": {},
+    "install_requires": ["bl", "bf", "lxml", "markdown"],
+    "extras_require": {"dev": [], "test": []},
+    "package_data": {
+        "bxml": [
+            "jars/*.jar",
+            "jars/saxon9/*.jar",
+            "schematron/trunk/schematron/code/*.xsl",
+            "xslts/*.xslt",
+        ]
+    },
+    "data_files": [],
+    "scripts": [],
 }
 
 import os, json

@@ -1,3 +1,5 @@
+-e git+https://github.com/BlackEarth/bf.git@62edd9ffbde3cbc244d860db1b5bd111eb473627#egg=bf
+-e git+https://github.com/BlackEarth/bl.git@4c7239eaffd75e168d15a8985811be2b9fa5a990#egg=bl
 certifi==2017.11.5
 chardet==3.0.4
 cssselect==1.0.3
