@@ -21,6 +21,7 @@ config = {
             "jars/saxon9/*.jar",
             "schematron/trunk/schematron/code/*.xsl",
             "xslts/*.xslt",
+            "*.json",
         ]
     },
     "data_files": [],
