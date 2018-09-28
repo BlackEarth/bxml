@@ -1,6 +1,6 @@
 config = {
     "name": "bxml",
-    "version": "2.2.2",
+    "version": "2.3.0",
     "description": "XML library",
     "url": "https://github.com/BlackEarth/bxml",
     "author": "Sean Harrison",
