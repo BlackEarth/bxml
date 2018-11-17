@@ -116,10 +116,10 @@ class DOCX(ZIP):
                     style.basedOn = bo.get("{%(w)s}val" % DOCX.NS)
                 style.properties = Dict()
                 for pr in s.xpath("w:pPr/* | w:rPr/*", namespaces=DOCX.NS):
-                    tag = re.sub("^\{[^}]*\}", "", pr.tag)
+                    tag = re.sub(r"^\{[^}]*\}", "", pr.tag)
                     props = Dict()
                     for attr in pr.attrib.keys():
-                        k = re.sub("^\{[^}]*\}", "", attr)
+                        k = re.sub(r"^\{[^}]*\}", "", attr)
                         props[k] = pr.get(attr)
                     style.properties[tag] = props
             if cache==True: self._stylemap = d
@@ -192,7 +192,7 @@ class DOCX(ZIP):
     def strftime_string(C, msformat):
         "convert Word date/time picture (msformat) into a strftime format string"
         s = msformat
-        s = re.sub("%", "%%", s)                   # percent sign
+        s = re.sub(r"%", "%%", s)                   # percent sign
         s = re.sub(r"(?<!%)\b(y(?:yyy)?)\b", "%Y", s)   # 4-digit year
         s = re.sub(r"(?<!%)\b(yy)\b", "%y", s)     # 2-digit year
         s = re.sub(r"(?<!%)\b(MMMM)\b", "%B", s)   # full month
