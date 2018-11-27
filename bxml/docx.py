@@ -107,22 +107,26 @@ class DOCX(ZIP):
                                 uses = endnotes.root.xpath(style.xpath, namespaces=DOCX.NS)
                             if len(uses)==0:
                                 continue
-                style.name = s.find("{%(w)s}name" % self.NS).get("{%(w)s}val" % self.NS)
+                LOG.debug("%s %r" % (s.tag, s.attrib))
+                style.name = XML.find(s, "w:name/@w:val", namespaces=self.NS)
+                if style.name is None:
+                    LOG.warn("STYLE WITHOUT NAME: %r" % style)
                 d[style.id] = style
-                if definitions != True: 
-                    continue
-                bo = s.find("{%(w)s}basedOn" % DOCX.NS)
-                if bo is not None:
-                    style.basedOn = bo.get("{%(w)s}val" % DOCX.NS)
-                style.properties = Dict()
-                for pr in s.xpath("w:pPr/* | w:rPr/*", namespaces=DOCX.NS):
-                    tag = re.sub(r"^\{[^}]*\}", "", pr.tag)
-                    props = Dict()
-                    for attr in pr.attrib.keys():
-                        k = re.sub(r"^\{[^}]*\}", "", attr)
-                        props[k] = pr.get(attr)
-                    style.properties[tag] = props
-            if cache==True: self._stylemap = d
+                LOG.debug(style)
+                if definitions is True: 
+                    bo = s.find("{%(w)s}basedOn" % DOCX.NS)
+                    if bo is not None:
+                        style.basedOn = bo.get("{%(w)s}val" % DOCX.NS)
+                    style.properties = Dict()
+                    for pr in s.xpath("w:pPr/* | w:rPr/*", namespaces=DOCX.NS):
+                        tag = re.sub(r"^\{[^}]*\}", "", pr.tag)
+                        props = Dict()
+                        for attr in pr.attrib.keys():
+                            k = re.sub(r"^\{[^}]*\}", "", attr)
+                            props[k] = pr.get(attr)
+                        style.properties[tag] = props
+            if cache is True: 
+                self._stylemap = d
             return d
 
     def endnotemap(self, cache=True):
