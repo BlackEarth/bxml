@@ -310,7 +310,7 @@ class XML(File):
             try:
                 self.jing(tag=tag, schemas=schemas, schemafn=schemafn)
             except:
-                errors += str(sys.exc_info()[1]).split('\n')
+                errors += [e.strip() for e in str(sys.exc_info()[1]).split('\n') if e.strip() != '']
         if lxml == True:
             # this throws an uncaught error if the schema cannot be parsed.
             validator = self.Validator(tag=tag, schemas=schemas, rngfn=schemafn)
