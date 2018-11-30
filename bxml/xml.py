@@ -109,6 +109,17 @@ class XML(File):
         return "%s_%s" % (C.tag_name(element), random_id(8))
 
     @classmethod
+    def prefixed_to_namespaced(C, prefixed_name, namespaces):
+        """for a given prefix:name, return {namespace}name from the given namespaces dict
+        """
+        if ':' not in prefixed_name:
+            return prefixed_name
+        else:
+            prefix, name = prefixed_name.split(':')
+            namespace = namespaces[prefix]
+            return "{%s}%s" % (namespace, name)
+
+    @classmethod
     def xpath(C, node, path, namespaces=None, extensions=None, smart_strings=True, **args):
         """shortcut to Element.xpath()"""
         return node.xpath(
