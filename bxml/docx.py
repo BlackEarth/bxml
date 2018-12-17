@@ -72,8 +72,10 @@ class DOCX(ZIP):
 
     def metadata(self):
         """return a cp:metadata element with the metadata in the document"""
-        xml = self.xml(src="docProps/core.xml")
-        return xml.root
+        md = self.xml(src="docProps/core.xml")
+        if md is None:
+            md = XML(root=etree.Element("{%(cp)s}metadata" % self.NS))
+        return md.root
 
     def stylemap(self, definitions=True, all=True, cache=False):
         """return a dictionary of styles from .docx word/styles.xml, keyed to the id
