@@ -112,7 +112,7 @@ class DOCX(ZIP):
                 LOG.debug("%s %r" % (s.tag, s.attrib))
                 style.name = XML.find(s, "w:name/@w:val", namespaces=self.NS)
                 if style.name is None:
-                    LOG.warn("STYLE WITHOUT NAME: %r" % style)
+                    LOG.debug("style without name: %r" % style)
                 d[style.id] = style
                 LOG.debug(style)
                 if definitions is True: 
