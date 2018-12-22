@@ -216,8 +216,8 @@ class XML(File):
         return self.__str__()
 
     def digest(self, **args):
-        """calculate a digest based on the hash of the article's content"""
-        return String(self.canonicalized).digest(**args)
+        """calculate a digest based on the hash of the XML content"""
+        return String(XML.canonicalized_string(self.root)).digest(**args)
 
     @classmethod
     def canonicalized_bytes(Cls, elem):
