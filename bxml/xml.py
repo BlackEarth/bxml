@@ -483,7 +483,8 @@ class XML(File):
 
     def xslt(self, xslfn, elem=None, cache=True, **params):
         from .xslt import XSLT
-
+        if elem is None:
+            elem = self.root
         xt = XSLT(fn=xslfn, elem=elem, cache=cache)
         return xt(elem, **params)
 
