@@ -104,15 +104,15 @@ class Schema(Text):
                 'markdown.extensions.sane_lists', 
                 'markdown.extensions.toc']).strip()
         html_text = """<html><head><meta charset="UTF-8"/><style type="text/css">
-            body {font-family:sans-serif;line-height:1.3}
-            h1,h2,h3 {margin:1em 0 .25em 0}
+            body {font-family:sans-serif;line-height:1.3;}
+            h1,h2,h3 {margin:1em 0 .25em 0;}
             h1 {font-size:2rem;font-weight:normal;}
             h2 {font-size:1.2rem;font-weight:bold;}
             h3 {font-size:1.15rem;font-weight:normal;font-style:italic;}
             p {margin:0 0 .5rem 0;}
-            p.subtitle {font-size:1.2rem;font-family:sans-serif;margin-bottom:1em}
-            p.code {font-family:monospace;font-size:.6rem;color:#666;line-height:1.1}
-            pre {font-family:monospace;font-size:.6rem;color:#666;line-height:1.1;margin-left:1.5rem;}
+            p.subtitle {font-size:1.2rem;font-family:sans-serif;margin-bottom:1em;}
+            code, p.code {font-family:monospace;font-size:0.9rem;color:#666;line-height:1.1;}
+            pre {font-family:monospace;font-size:0.9rem;color:#666;line-height:1.1;margin-left:1.5rem;}
             hr {border:0;border-top:1px solid #999;margin:1rem 0;}
             </style></head><body>\n""" + html_body + """\n</body></html>"""
         html = XML(fn=htmlfn, root=html_text)
