@@ -9,6 +9,6 @@
 cssselect==1.0.3
 cssutils==1.0.2
 libsass==0.13.5
-lxml==4.1.1
+lxml==4.6.3
 six==1.11.0               # via libsass
 unum==4.1.3
