@@ -1,3 +1,3 @@
 -e git+https://github.com/BlackEarth/bf.git@62edd9ffbde3cbc244d860db1b5bd111eb473627#egg=bf
 -e git+https://github.com/BlackEarth/bl.git@4c7239eaffd75e168d15a8985811be2b9fa5a990#egg=bl
-lxml==4.4.0
+lxml==4.6.5
