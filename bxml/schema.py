@@ -100,7 +100,6 @@ class Schema(Text):
             extensions=[                            # see https://python-markdown.github.io/extensions/
                 'markdown.extensions.extra',    
                 'markdown.extensions.admonition', 
-                'markdown.extensions.headerid', 
                 'markdown.extensions.sane_lists', 
                 'markdown.extensions.toc']).strip()
         html_text = """<html><head><meta charset="UTF-8"/><style type="text/css">
