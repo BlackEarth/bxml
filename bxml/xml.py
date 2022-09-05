@@ -651,8 +651,8 @@ class XML(File):
         return tag
 
     @classmethod
-    def namespace_prefix(C, elem, namespaces):
-        ns = C.tag_namespace(elem.tag)
+    def tag_namespace_prefix(C, tag, namespaces):
+        ns = C.tag_namespace(tag)
         for key, val in namespaces.items():
             if val == ns:
                 return key
