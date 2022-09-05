@@ -76,18 +76,26 @@ class XT:
         return _registrar
 
     def xpath(self, element, xpath, namespaces=None):
-        return element.xpath(xpath, namespaces=namespaces or self.namespaces)
+        for elem in element.xpath(xpath, namespaces=namespaces or self.namespaces):
+            yield elem
+
+    def transform_all(self, elements, **params):
+        """
+        Transform all the given elements and yield the results.
+        """
+        for element in elements:
+            yield self.transform(element, **params)
 
     def transform(self, element, **params):
         """
         Transform the given element with the first registered transformer that matches.
         Pass the element and params to the transformer and return the results, or None.
         """
-        transformer = self.select_transformer(element, **params)
+        transformer = self.get_transformer(element, **params)
         if transformer is not None:
             return transformer.function(element, **params)
 
-    def select_transformer(self, element, **params):
+    def get_transformer(self, element, **params):
         """
         For the given element, select the transformer that will be applied.
         """

@@ -15,12 +15,12 @@ NS = OrderedDict(
         # XHTML
         ("html", "http://www.w3.org/1999/xhtml"),
         # Publishing XML
-        ('pub', 'http://publishingxml.org/ns'),
+        ("pub", "http://publishingxml.org/ns"),
     ]
 )
 
 H = Builder.single(NS.html)
-PUB = Builder.single(NS.pub)
+PUB = Builder(default=NS.html, **NS).pub
 xt = XT(namespaces=NS)
 
 
@@ -30,15 +30,15 @@ def document(element, **params):
         "\n",
         H.body(
             "\n",
-            *[
-                xt.transform(elem, **params)
-                for elem in xt.xpath(
+            *xt.transform_all(
+                xt.xpath(
                     element,
                     "//html:section[descendant::html:p[contains(@class, 'Article')]]",
-                )
-            ],
+                ),
+                **params,
+            ),
+            tail="\n",
         ),
-        tail="\n",
     )
 
 
@@ -56,7 +56,8 @@ def article(element, **params):
     return H.section(
         "\n",
         {"class": "Article", "aria-label": title},
-        *[xt.transform(child, **params) for child in element],
+        # the following works because element is an iterator of its children
+        *xt.transform_all(element, **params),
         tail="\n\n",
     )
 
