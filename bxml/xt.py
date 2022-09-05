@@ -1,90 +1,96 @@
 import logging
-from copy import deepcopy
+import secrets
+from enum import Enum
 
-from bl.dict import Dict
+from bl.dict import Dict, OrderedDict
 from lxml import etree
 
 LOG = logging.getLogger(__file__)
 
 
+class TestType(Enum):
+    XPATH = "lxml.etree.XPath"
+    FUNCTION = "function"
+
+    @classmethod
+    def select_for(C, test):
+        if type(test) == etree.XPath:
+            return C.XPATH
+        elif type(test) == type(lambda: None):
+            return C.FUNCTION
+        else:
+            raise ValueError(f"Invalid test type: {type(test)}")
+
+
+class RegisteredTransformer:
+    def __init__(self, function=None, test=None, namespaces=None):
+        self.function = function
+        self.namespaces = namespaces
+
+        # if test is a string, make it an XPath test method on the given element.
+        if isinstance(test, str):
+            self.test = etree.XPath(f"self::{test}", namespaces=namespaces)
+        elif isinstance(test, (etree.XPath, type(lambda: None))):
+            self.test = test
+
+        self.test_type = TestType.select_for(self.test)
+
+
 class XT:
     """XML Transformations (XT)"""
 
-    def __init__(self):
-        # a list of matches to select which transformation method to apply
-        self.matches = []
+    def __init__(self, namespaces=None):
+        # a registered OrderedDict of transformers to select which transformation method
+        # to apply
+        self.transformers = OrderedDict()
+        self.namespaces = namespaces
 
-    def match(self, expression=None, xpath=None, namespaces=None):
-        """decorator that allows us to match by expression or by xpath for each transformation method"""
+    def register(self, name=None, test=None, namespaces=None):
+        """
+        Decorator to register transformers that
 
-        class MatchObject(Dict):
-            pass
+        - match by test function (lambda) or by xpath (like xsl:apply-templates select)
+        - can be called by name (like xsl:call-template name)
+        """
 
-        def _match(function):
-            self.matches.append(
-                MatchObject(
-                    expression=expression,
-                    xpath=xpath,
-                    function=function,
-                    namespaces=namespaces,
-                )
+        def _registrar(function):
+            nonlocal name
+            # if a name is not given, assign a unique random one.
+            if name is None:
+                name = secrets.token_urlsafe(24)
+
+            # register the transformer by name
+            self.transformers[name] = RegisteredTransformer(
+                function=function,
+                test=test,
+                namespaces=namespaces or self.namespaces,
             )
 
+            # decorate
             def wrapper(self, *args, **params):
                 return function(self, *args, **params)
 
             return wrapper
 
-        return _match
+        # decorator
+        return _registrar
 
-    def __call__(self, elems, **params):
-        """provide a consistent interface for transformations"""
-        ee = []
-        if type(elems) != list:
-            elems = [elems]
-        for elem in elems:
-            # LOG.debug("%s %r" % (elem.tag, elem.attrib))
-            if type(elem) == str:
-                ee.append(elem)
-            else:
-                the_match = self.get_match(elem)
-                if the_match is not None:
-                    ee += the_match.function(elem, **params) or []
-                else:
-                    ee += self.omit(elem, **params)
-        return [e for e in ee if e is not None]
+    def xpath(self, element, xpath, namespaces=None):
+        return element.xpath(xpath, namespaces=namespaces or self.namespaces)
 
-    def get_match(self, elem):
-        """for the given elem, return the @match function that will be applied"""
-        for m in self.matches:
-            if (m.expression is not None and eval(m.expression) == True) or (
-                m.xpath is not None
-                and len(elem.xpath(m.xpath, namespaces=m.namespaces)) > 0
-            ):
-                LOG.debug("=> match: %r" % m.expression)
-                return m
+    def transform(self, element, **params):
+        """
+        Transform the given element with the first registered transformer that matches.
+        Pass the element and params to the transformer and return the results, or None.
+        """
+        transformer = self.select_transformer(element, **params)
+        if transformer is not None:
+            return transformer.function(element, **params)
 
-    def Element(self, elem, **params):
-        """Ensure that the input element is immutable by the transformation. Returns a single element."""
-        res = self.__call__(deepcopy(elem), **params)
-        if len(res) > 0:
-            return res[0]
-        else:
-            return None
-
-    # == COMMON TRANSFORMATION METHODS ==
-
-    def inner_xml(self, elem, with_tail=True, **params):
-        x = [elem.text or ""] + self(elem.getchildren(), **params)
-        if with_tail == True:
-            x += [elem.tail or ""]
-        return x
-
-    def omit(self, elem, keep_tail=True, **params):
-        r = []
-        if keep_tail == True and elem.tail is not None:
-            r += [elem.tail]
-        return r
-
-    def copy(self, elem, **params):
-        return deepcopy(elem)
+    def select_transformer(self, element, **params):
+        """
+        For the given element, select the transformer that will be applied.
+        """
+        for transformer in self.transformers.values():
+            if bool(transformer.test(element, **params)) is True:
+                return transformer
