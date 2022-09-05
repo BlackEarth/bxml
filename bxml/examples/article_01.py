@@ -3,9 +3,21 @@ An example of a simple XT template.
 """
 from copy import deepcopy
 
-from bxml import NS
+from bl.dict import OrderedDict
 from bxml.builder import Builder
 from bxml.xt import XT
+
+NS = OrderedDict(
+    [
+        # XML
+        ("xml", "http://www.w3.org/XML/1998/namespace"),
+        ("xsi", "http://www.w3.org/2001/XMLSchema-instance"),
+        # XHTML
+        ("html", "http://www.w3.org/1999/xhtml"),
+        # Publishing XML
+        ('pub', 'http://publishingxml.org/ns'),
+    ]
+)
 
 H = Builder.single(NS.html)
 PUB = Builder.single(NS.pub)
