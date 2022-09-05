@@ -1,10 +1,20 @@
-import os, re, time, sys, subprocess, html, json, tempfile, traceback, logging
+import html
+import json
+import logging
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import time
+import traceback
 from copy import deepcopy
-from lxml import etree
+
 from bl.dict import Dict
+from bl.file import File
 from bl.id import random_id
 from bl.string import String
-from bl.file import File
+from lxml import etree
 
 from .schema import Schema
 
@@ -28,7 +38,7 @@ class XML(File):
         root=None,
         tree=None,
         parser=None,
-        encoding='UTF-8',
+        encoding="UTF-8",
         schemas=None,
         NS=None,
         **args,
@@ -67,7 +77,7 @@ class XML(File):
             if tagns is not None:
                 nstag = list(self.NS.keys())[list(self.NS.values()).index(tagns)]
             else:
-                nstag = '_'  # this is the "default" nstag for the Builder
+                nstag = "_"  # this is the "default" nstag for the Builder
             self.root = B[nstag](tag)
         else:
             self.root = etree.Element(
@@ -84,16 +94,16 @@ class XML(File):
         if tree is not None:
             info = Dict(
                 **{
-                    'URL': tree.docinfo.URL,
-                    'doctype': tree.docinfo.doctype,
-                    'encoding': tree.docinfo.encoding,
-                    'externalDTD': tree.docinfo.externalDTD,
-                    'internalDTD': tree.docinfo.internalDTD,
-                    'public_id': tree.docinfo.public_id,
-                    'system_url': tree.docinfo.system_url,
-                    'root_name': tree.docinfo.root_name,
-                    'standalone': tree.docinfo.standalone,
-                    'xml_version': tree.docinfo.xml_version,
+                    "URL": tree.docinfo.URL,
+                    "doctype": tree.docinfo.doctype,
+                    "encoding": tree.docinfo.encoding,
+                    "externalDTD": tree.docinfo.externalDTD,
+                    "internalDTD": tree.docinfo.internalDTD,
+                    "public_id": tree.docinfo.public_id,
+                    "system_url": tree.docinfo.system_url,
+                    "root_name": tree.docinfo.root_name,
+                    "standalone": tree.docinfo.standalone,
+                    "xml_version": tree.docinfo.xml_version,
                 }
             )
         else:
@@ -110,12 +120,11 @@ class XML(File):
 
     @classmethod
     def prefixed_to_namespaced(C, prefixed_name, namespaces):
-        """for a given prefix:name, return {namespace}name from the given namespaces dict
-        """
-        if ':' not in prefixed_name:
+        """for a given prefix:name, return {namespace}name from the given namespaces dict"""
+        if ":" not in prefixed_name:
             return prefixed_name
         else:
-            prefix, name = prefixed_name.split(':')
+            prefix, name = prefixed_name.split(":")
             namespace = namespaces[prefix]
             return "{%s}%s" % (namespace, name)
 
@@ -157,7 +166,7 @@ class XML(File):
         self,
         fn=None,
         root=None,
-        encoding='UTF-8',
+        encoding="UTF-8",
         doctype=None,
         canonicalized=False,
         xml_declaration=True,
@@ -182,7 +191,7 @@ class XML(File):
     def tobytes(
         self,
         root=None,
-        encoding='UTF-8',
+        encoding="UTF-8",
         doctype=None,
         canonicalized=True,
         xml_declaration=True,
@@ -237,7 +246,7 @@ class XML(File):
     @classmethod
     def canonicalized_string(Cls, elem):
         """use this for testing -- to compare two ElementTrees"""
-        return Cls.canonicalized_bytes(elem).decode('UTF-8')
+        return Cls.canonicalized_bytes(elem).decode("UTF-8")
 
     def copy(self, elem=None):
         d = self.__class__()
@@ -253,13 +262,13 @@ class XML(File):
         if test is not None:
             tests.insert(0, test)
         if len(tests) > 0:
-            xpath += "[%s]" % ' and '.join(tests)
+            xpath += "[%s]" % " and ".join(tests)
         e = self.find(self.root, xpath)
         if e is None:
-            tag = tag_path.split('/')[-1].split('[')[0]
-            tagname = tag.split(':')[-1]
-            if ':' in tag:
-                nstag = tag.split(':')[0]
+            tag = tag_path.split("/")[-1].split("[")[0]
+            tagname = tag.split(":")[-1]
+            if ":" in tag:
+                nstag = tag.split(":")[0]
                 tag = "{%s}%s" % (self.NS[nstag], tagname)
             e = etree.Element(tag, **attributes)
         return e
@@ -283,8 +292,8 @@ class XML(File):
             return XML.fromstring(t % tuple(sargs))
 
     @classmethod
-    def fromstring(Class, text, parser=None, base_url=None, encoding='UTF-8'):
-        with open(os.path.join(os.path.dirname(__file__), 'entities.json'), 'rb') as f:
+    def fromstring(Class, text, parser=None, base_url=None, encoding="UTF-8"):
+        with open(os.path.join(os.path.dirname(__file__), "entities.json"), "rb") as f:
             entities = json.load(f)
 
         def repl_entity(md):
@@ -295,8 +304,8 @@ class XML(File):
 
         if type(text) == bytes:
             text = text.decode(encoding)
-        text = re.sub(r'&[^#][^;]+;', repl_entity, text)
-        return etree.fromstring(text.encode('utf-8'), parser=parser, base_url=base_url)
+        text = re.sub(r"&[^#][^;]+;", repl_entity, text)
+        return etree.fromstring(text.encode("utf-8"), parser=parser, base_url=base_url)
 
     # == VALIDATION ==
     # uses the Schema object in this module
@@ -308,11 +317,11 @@ class XML(File):
             tag = tag or self.root.tag
             schemas = schemas or self.schemas
             if rebuild == True or self.VALIDATORS.get(tag) is None:
-                rngfn = Schema.filename(tag, schemas, ext='.rng')
+                rngfn = Schema.filename(tag, schemas, ext=".rng")
                 if rngfn is None or rebuild == True:  # .rnc => .rng
-                    rncfn = Schema.filename(tag, schemas, ext='.rnc')
+                    rncfn = Schema.filename(tag, schemas, ext=".rnc")
                     if rncfn is not None:  # build the rng file
-                        rngfn = Schema(rncfn).trang(ext='.rng')
+                        rngfn = Schema(rncfn).trang(ext=".rng")
         if rngfn is not None:
             self.VALIDATORS[tag] = etree.RelaxNG(etree.parse(rngfn))
         return self.VALIDATORS.get(tag)
@@ -337,8 +346,8 @@ class XML(File):
             except:
                 errors += [
                     e.strip()
-                    for e in str(sys.exc_info()[1]).split('\n')
-                    if e.strip() != ''
+                    for e in str(sys.exc_info()[1]).split("\n")
+                    if e.strip() != ""
                 ]
         if lxml == True:
             # this throws an uncaught error if the schema cannot be parsed.
@@ -358,40 +367,40 @@ class XML(File):
         except:
             return False
 
-    def jing(self, tag=None, schemas=None, schemafn=None, ext='.rnc'):
+    def jing(self, tag=None, schemas=None, schemafn=None, ext=".rnc"):
         """use the (included) jing library to validate the XML."""
         from . import JARS
 
-        java = os.environ.get('java') or 'java'
-        jingfn = os.path.join(JARS, 'jing.jar')
+        java = os.environ.get("java") or "java"
+        jingfn = os.path.join(JARS, "jing.jar")
         tag = tag or self.root.tag
         schemas = schemas or self.schemas
         schemafn = schemafn or Schema.filename(tag, schemas, ext=ext)
         if schemafn is not None:
-            cmd = [java, '-jar', jingfn, '-c', schemafn]
-            if os.path.splitext(schemafn)[-1].lower() != '.rnc':
-                cmd.pop(cmd.index('-c'))
+            cmd = [java, "-jar", jingfn, "-c", schemafn]
+            if os.path.splitext(schemafn)[-1].lower() != ".rnc":
+                cmd.pop(cmd.index("-c"))
             try:
                 fn = self.fn
                 if fn is None or not os.path.exists(fn):
                     tempf = tempfile.NamedTemporaryFile()
                     fn = tempf.name
                     tempf.close()
-                    open(fn, 'wb').write(etree.tounicode(self.root).encode('utf-8'))
+                    open(fn, "wb").write(etree.tounicode(self.root).encode("utf-8"))
                 subprocess.check_output(cmd + [fn])
             except subprocess.CalledProcessError as e:
-                tbtext = html.unescape(str(e.output, 'UTF-8'))
+                tbtext = html.unescape(str(e.output, "UTF-8"))
                 raise RuntimeError(tbtext).with_traceback(sys.exc_info()[2]) from None
 
-    def schematron(self, tag=None, schemas=None, schemafn=None, ext='.sch'):
+    def schematron(self, tag=None, schemas=None, schemafn=None, ext=".sch"):
         """validate the XML using Schematron; the schema might be a schematron file,
-            or it might be a RelaxNG schema that contains embedded Schematron.
+        or it might be a RelaxNG schema that contains embedded Schematron.
         """
         from . import PATH
         from .xslt import XSLT
 
         schematron_path = os.path.join(
-            PATH, 'schematron', 'trunk', 'schematron', 'code'
+            PATH, "schematron", "trunk", "schematron", "code"
         )
 
         # select the schema filename
@@ -400,32 +409,32 @@ class XML(File):
         schemafn = (
             schemafn
             or Schema.filename(tag, schemas, ext=ext)
-            or Schema.filename(tag, schemas, ext='.rng')
-            or Schema.filename(tag, schemas, ext='.rnc')
+            or Schema.filename(tag, schemas, ext=".rng")
+            or Schema.filename(tag, schemas, ext=".rnc")
         )
 
         assert schemafn is not None and os.path.exists(schemafn)
 
         # ensure that an up-to-date Schematron schema file is available.
-        schfn = File(fn=schemafn).clean_filename(ext='.sch')
+        schfn = File(fn=schemafn).clean_filename(ext=".sch")
         fbase, fext = os.path.splitext(schfn)
         if not (os.path.exists(schfn)) or (
-            os.path.exists(fbase + '.rnc')
-            and File(fn=schfn).last_modified < File(fn=fbase + '.rnc').last_modified
+            os.path.exists(fbase + ".rnc")
+            and File(fn=schfn).last_modified < File(fn=fbase + ".rnc").last_modified
         ):
             # create the Schematron file from the .rnc
-            schfn = Schema(fn=fbase + '.rnc').schematron()
+            schfn = Schema(fn=fbase + ".rnc").schematron()
         elif not (os.path.exists(schfn)) or (
-            os.path.exists(fbase + '.rng')
-            and File(fn=schfn).last_modified < File(fn=fbase + '.rng').last_modified
+            os.path.exists(fbase + ".rng")
+            and File(fn=schfn).last_modified < File(fn=fbase + ".rng").last_modified
         ):
             # create the Schematron file from the .rng
-            schfn = Schema(fn=fbase + '.rng').schematron()
+            schfn = Schema(fn=fbase + ".rng").schematron()
 
         assert schfn is not None and os.path.exists(schfn)
 
         # ensure that an up-to-date Schematron XSLT file is available
-        sch_xslt_fn = schfn + '.xslt'
+        sch_xslt_fn = schfn + ".xslt"
         if (
             not os.path.exists(sch_xslt_fn)
             or File(fn=sch_xslt_fn).last_modified < File(fn=schfn).last_modified
@@ -439,16 +448,16 @@ class XML(File):
             # (tried the XSLT 2.0 version with Saxon9HE, but Schematron assumes XSLT 1.0 compatibility,
             # which Saxon9HE doesn't support.)
             for xslfb in [
-                'iso_dsdl_include.xsl',
-                'iso_abstract_expand.xsl',
-                'iso_svrl_for_xslt1.xsl',
+                "iso_dsdl_include.xsl",
+                "iso_abstract_expand.xsl",
+                "iso_svrl_for_xslt1.xsl",
             ]:
                 xslt = XSLT(fn=os.path.join(schematron_path, xslfb))
                 sch.root = xslt.saxon6(sch.root).getroot()
                 sch.write()
 
             # change the XSLT version from "1.0" to "2.0". (Later we might support 3.0)
-            sch.root.set('version', '2.0')
+            sch.root.set("version", "2.0")
             sch.write()
 
         assert sch_xslt_fn is not None and os.path.exists(sch_xslt_fn)
@@ -457,17 +466,17 @@ class XML(File):
         sch_xslt = XSLT(fn=sch_xslt_fn)
         report = XML(root=sch_xslt.saxon9(self.root).getroot())
         if self.fn:
-            report.write(fn=self.fn + '.sch.xml')
+            report.write(fn=self.fn + ".sch.xml")
 
         # return the errors in the report_xml as a list of errors, with line numbers
         failures = report.xpath(
             report.root,
             "//svrl:failed-assert",
-            namespaces={'svrl': "http://purl.oclc.org/dsdl/svrl"},
+            namespaces={"svrl": "http://purl.oclc.org/dsdl/svrl"},
         )
         errors = []
         for failure in failures:
-            for e in self.xpath(self.root, failure.get('location')):
+            for e in self.xpath(self.root, failure.get("location")):
                 errors.append(
                     "%s:%d <%s %s>: error: %s"
                     % (
@@ -475,7 +484,7 @@ class XML(File):
                         e.sourceline or -1,
                         self.tag_name(e),
                         " ".join(['%s="%s"' % (k, v) for k, v in e.attrib.items()]),
-                        etree.tounicode(failure, method='text').strip(),
+                        etree.tounicode(failure, method="text").strip(),
                     )
                 )
         return errors
@@ -500,19 +509,19 @@ class XML(File):
         """return the name of the tag, with the namespace removed"""
         while isinstance(tag, etree._Element):
             tag = tag.tag
-        return tag.split('}')[-1]
+        return tag.split("}")[-1]
 
     @classmethod
     def prefixed_tag_name(cls, tag, namespaces):
         while isinstance(tag, etree._Element):
             tag = tag.tag
         name = cls.tag_name(tag)
-        if '}' in tag:
-            namespace = tag.split('}')[0].strip('{')
+        if "}" in tag:
+            namespace = tag.split("}")[0].strip("{")
             keys = list(namespaces.keys())
             values = list(namespaces.values())
             if namespace in values:
-                prefix = keys[values.index(namespace)] + ':'
+                prefix = keys[values.index(namespace)] + ":"
             else:
                 prefix = f"{{{namespace}}}"
             name = prefix + name
@@ -521,13 +530,13 @@ class XML(File):
     @classmethod
     def element_tag_string(cls, element, namespaces=None):
         """Create a string representation of the element's first tag for display."""
-        s = '<'
+        s = "<"
         s += (
             cls.prefixed_tag_name(element, namespaces)
             if namespaces is not None
             else cls.tag_name(element)
         )
-        s += ' ' + ' '.join(
+        s += " " + " ".join(
             (
                 cls.prefixed_tag_name(key, namespaces)
                 if namespaces is not None
@@ -536,7 +545,7 @@ class XML(File):
             + f'="{val}"'
             for key, val in element.attrib.items()
         )
-        s = s.strip() + '>'
+        s = s.strip() + ">"
         return s
 
     # == TRANSFORMATIONS ==
@@ -573,15 +582,15 @@ class XML(File):
         hierarchy=False,
         minimize=False,
     ):
-        """return a dict of element tags, their attribute names, and optionally attribute values, 
-            in the XML document
+        """return a dict of element tags, their attribute names, and optionally attribute values,
+        in the XML document
         """
         if tags is None:
             tags = Dict()
         for elem in self.root.xpath(xpath):
             if elem.tag not in tags.keys():
                 tags[elem.tag] = Dict(
-                    **{'parents': [], 'children': [], 'attributes': Dict()}
+                    **{"parents": [], "children": [], "attributes": Dict()}
                 )
             for a in [
                 a
@@ -608,12 +617,12 @@ class XML(File):
                         tags[elem.tag].children.append(child.tag)
         if minimize == True:
             for tag in tags.keys():
-                if tags[tag].get('parents') == []:
-                    tags[tag].pop('parents')
-                if tags[tag].get('children') == []:
-                    tags[tag].pop('children')
-                if tags[tag].get('attributes') == {}:
-                    tags[tag].pop('attributes')
+                if tags[tag].get("parents") == []:
+                    tags[tag].pop("parents")
+                if tags[tag].get("children") == []:
+                    tags[tag].pop("children")
+                if tags[tag].get("attributes") == {}:
+                    tags[tag].pop("attributes")
                 if tags[tag] == {}:
                     tags.pop(tag)
         return tags
@@ -662,13 +671,13 @@ class XML(File):
         d = Dict(**{tag: {}})
         d[tag].update(
             **{
-                '@' + self.tag_dict_key(k, namespaces=namespaces): elem.attrib[k]
+                "@" + self.tag_dict_key(k, namespaces=namespaces): elem.attrib[k]
                 for k in elem.attrib.keys()
             }
         )
         nodes = []
         if elem.text is not None and (
-            elem.text.strip() != '' or ignore_whitespace != True
+            elem.text.strip() != "" or ignore_whitespace != True
         ):
             nodes.append(str(elem.text))
         for ch in [
@@ -680,11 +689,11 @@ class XML(File):
                 )
             )
             if ch.tail is not None and (
-                ch.tail.strip() != '' or ignore_whitespace != True
+                ch.tail.strip() != "" or ignore_whitespace != True
             ):
                 d[tag].append(ch.tail)
         if nodes != []:
-            d[tag]['nodes'] = nodes
+            d[tag]["nodes"] = nodes
         return d
 
     @classmethod
@@ -693,8 +702,8 @@ class XML(File):
         namespaces = namespaces or Class.NS
         ns = Class.tag_namespace(key)
         tag = Class.tag_name(key)
-        if ns is None and ':' in key:
-            prefix, tag = key.split(':')
+        if ns is None and ":" in key:
+            prefix, tag = key.split(":")
             if prefix in namespaces.keys():
                 ns = namespaces[prefix]
         if ns is not None:
@@ -725,10 +734,10 @@ class XML(File):
         elem = B(elem_tag)
         for k in element_data[key].keys():
             # attributes
-            if k[0] == '@':
+            if k[0] == "@":
                 attr_name = Class.dict_key_tag(k[1:])
                 elem.set(attr_name, element_data[key][k])
-            elif k == 'nodes':
+            elif k == "nodes":
                 for node in element_data[key][k]:
                     if type(node) == str:
                         if len(elem) == 0:
@@ -739,7 +748,7 @@ class XML(File):
                         child_elem = Class.from_dict(node)
                         elem.append(child_elem)
             else:
-                raise ValueError('unsupported data: %r: %r' % (k, element_data[key][k]))
+                raise ValueError("unsupported data: %r: %r" % (k, element_data[key][k]))
         return elem
 
     # == TREE MANIPULATIONS ==
@@ -749,9 +758,9 @@ class XML(File):
         return len(elem.getchildren()) == 0 and (
             (
                 ignore_whitespace == True
-                and (elem.text is None or elem.text.strip() == '')
+                and (elem.text is None or elem.text.strip() == "")
             )
-            or elem.text in [None, '']
+            or elem.text in [None, ""]
         )
 
     @classmethod
@@ -768,21 +777,21 @@ class XML(File):
         previous = elem.getprevious()
         # text
         if index == 0:
-            parent.text = (parent.text or '') + (elem.text or '')
+            parent.text = (parent.text or "") + (elem.text or "")
         else:
-            previous.tail = (previous.tail or '') + (elem.text or '')
+            previous.tail = (previous.tail or "") + (elem.text or "")
         # children
         for child in children:
             parent.insert(index + children.index(child), child)
         # tail
         if len(children) > 0:
             last_child = children[-1]
-            last_child.tail = (last_child.tail or '') + (elem.tail or '')
+            last_child.tail = (last_child.tail or "") + (elem.tail or "")
         else:
             if index == 0:
-                parent.text = (parent.text or '') + (elem.tail or '')
+                parent.text = (parent.text or "") + (elem.tail or "")
             else:
-                previous.tail = (previous.tail or '') + (elem.tail or '')
+                previous.tail = (previous.tail or "") + (elem.tail or "")
         # elem
         parent.remove(elem)
 
@@ -791,10 +800,10 @@ class XML(File):
         parent = elem.getparent()
         if leave_tail == True:
             if parent.index(elem) == 0:
-                parent.text = (parent.text or '') + (elem.tail or '')
+                parent.text = (parent.text or "") + (elem.tail or "")
             else:
                 prev = elem.getprevious()
-                prev.tail = (prev.tail or '') + (elem.tail or '')
+                prev.tail = (prev.tail or "") + (elem.tail or "")
         parent.remove(elem)
 
     @classmethod
@@ -816,14 +825,14 @@ class XML(File):
             if delete_end == True:
                 cls.remove(end_elem, leave_tail=True)
         elif elem is None:
-            if parent.tail not in [None, '']:
-                parent.tail = ''
+            if parent.tail not in [None, ""]:
+                parent.tail = ""
             cls.remove_range(parent.getnext(), end_elem)
             XML.remove_if_empty(parent)
         elif end_elem in elem.xpath("descendant::*"):
             if DEBUG == True:
                 print(elem.text)
-            elem.text = ''
+            elem.text = ""
             cls.remove_range(elem.getchildren()[0], end_elem)
             XML.remove_if_empty(elem)
         else:
@@ -832,38 +841,38 @@ class XML(File):
     @classmethod
     def wrap_content(cls, container, wrapper):
         "wrap the content of container element with wrapper element"
-        wrapper.text = (container.text or '') + (wrapper.text or '')
-        container.text = ''
+        wrapper.text = (container.text or "") + (wrapper.text or "")
+        container.text = ""
         for ch in container:
             wrapper.append(ch)
         container.insert(0, wrapper)
         return container
 
     @classmethod
-    def tag_words_in(cls, elem, tag='w'):
+    def tag_words_in(cls, elem, tag="w"):
         w = Dict(
             PATTERN=re.compile(r"([^\s]+)"),
-            REPLACE=r'{%s}\1{/%s}' % (tag, tag),
+            REPLACE=r"{%s}\1{/%s}" % (tag, tag),
             OMIT_ELEMS=[],
         )
 
         def tag_words(e):
-            e.text = re.sub(w.PATTERN, w.REPLACE, e.text or '')
+            e.text = re.sub(w.PATTERN, w.REPLACE, e.text or "")
             for ch in e:
                 if ch.tag not in w.OMIT_ELEMS:
                     tag_words(ch)
-                ch.tail = re.sub(w.PATTERN, w.REPLACE, ch.tail or '')
+                ch.tail = re.sub(w.PATTERN, w.REPLACE, ch.tail or "")
 
         new_elem = XML.fromstring(etree.tounicode(elem))
         tag_words(new_elem)
         s = etree.tounicode(new_elem)
-        s = s.replace('{%s}' % tag, '<%s>' % tag).replace('{/%s}' % tag, '</%s>' % tag)
+        s = s.replace("{%s}" % tag, "<%s>" % tag).replace("{/%s}" % tag, "</%s>" % tag)
         new_elem = XML.fromstring(s)
         return new_elem
 
     @classmethod
     def merge_contiguous(C, node, xpath, namespaces=None):
-        """Within a given node, merge elements that are next to each other 
+        """Within a given node, merge elements that are next to each other
         if they have the same tag and attributes.
         """
         new_node = deepcopy(node)
@@ -874,7 +883,7 @@ class XML(File):
             if elem.attrib == {}:
                 XML.replace_with_contents(elem)
             elif (
-                elem.tail in [None, '']
+                elem.tail in [None, ""]
                 and nxt is not None
                 and elem.tag == nxt.tag
                 and elem.attrib == nxt.attrib
@@ -883,9 +892,9 @@ class XML(File):
                 # -- append nxt.text to elem last child tail
                 if len(elem.getchildren()) > 0:
                     lastch = elem.getchildren()[-1]
-                    lastch.tail = (lastch.tail or '') + (nxt.text or '')
+                    lastch.tail = (lastch.tail or "") + (nxt.text or "")
                 else:
-                    elem.text = (elem.text or '') + (nxt.text or '')
+                    elem.text = (elem.text or "") + (nxt.text or "")
                 # -- append nxt children to elem children
                 for ch in nxt.getchildren():
                     elem.append(ch)
@@ -903,7 +912,7 @@ class XML(File):
         index = parent.index(elem)
         # put everything up to elem into a new parent element right before the current parent
         preparent = etree.Element(parent.tag)
-        preparent.text, parent.text = (parent.text or ''), ''
+        preparent.text, parent.text = (parent.text or ""), ""
         for k in parent.attrib.keys():
             preparent.set(k, parent.get(k))
         if index > 0:
@@ -916,7 +925,7 @@ class XML(File):
         # put the element right before the current parent
         XML.remove(elem, leave_tail=True)
         gparent.insert(gparent.index(parent), elem)
-        elem.tail = ''
+        elem.tail = ""
         # if the original parent is empty, remove it
         XML.remove_if_empty(
             parent, leave_tail=True, ignore_whitespace=ignore_whitespace
@@ -930,7 +939,7 @@ class XML(File):
             child_elem1 = etree.Element(elem1.tag)
             for k in elem1.attrib:
                 child_elem1.set(k, elem1.get(k))
-            child_elem1.text, elem2.text = elem2.text, ''
+            child_elem1.text, elem2.text = elem2.text, ""
             for ch in elem2.getchildren():
                 child_elem1.append(ch)
             elem2.insert(0, child_elem1)
@@ -938,7 +947,7 @@ class XML(File):
 
     @classmethod
     def fragment_nesting(cls, elem1, tag2, namespaces=None):
-        """for elem1 containing elements with tag2, 
+        """for elem1 containing elements with tag2,
         fragment elem1 into elems that are adjacent to and nested within tag2"""
         elems2 = elem1.xpath("child::%s" % tag2, namespaces=namespaces)
         while len(elems2) > 0:
@@ -950,7 +959,7 @@ class XML(File):
             child_elem1 = etree.Element(elem1.tag)
             for k in elem1.attrib:
                 child_elem1.set(k, elem1.get(k))
-            elem2.text, child_elem1.text = '', elem2.text
+            elem2.text, child_elem1.text = "", elem2.text
             for ch in elem2.getchildren():
                 child_elem1.append(ch)
             elem2.insert(0, child_elem1)
@@ -959,7 +968,7 @@ class XML(File):
             new_elem1 = etree.Element(elem1.tag)
             for k in elem1.attrib:
                 new_elem1.set(k, elem1.get(k))
-            new_elem1.text, elem2.tail = elem2.tail, ''
+            new_elem1.text, elem2.tail = elem2.tail, ""
             for ch in parent2.getchildren()[index2 + 1 :]:
                 new_elem1.append(ch)
 
@@ -970,7 +979,7 @@ class XML(File):
 
             # new_elem1 is placed after elem2
             parent.insert(parent.index(elem2) + 1, new_elem1)
-            new_elem1.tail, elem1.tail = elem1.tail, ''
+            new_elem1.tail, elem1.tail = elem1.tail, ""
 
             XML.remove_if_empty(elem1)
             XML.remove_if_empty(new_elem1)

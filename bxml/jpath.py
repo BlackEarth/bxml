@@ -6,6 +6,6 @@
 import re
 from copy import deepcopy
 
+
 def jpath(path, data):
-    path_vals = re.split(r'(/+)', path)
-    
+    path_vals = re.split(r"(/+)", path)

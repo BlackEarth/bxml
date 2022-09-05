@@ -28,17 +28,19 @@ config = {
     "scripts": [],
 }
 
-import os, json
-from setuptools import setup, find_packages
+import json
+import os
 from codecs import open
+
+from setuptools import find_packages, setup
 
 path = os.path.dirname(os.path.abspath(__file__))
 
-with open(os.path.join(path, 'README.md'), encoding='utf-8') as f:
+with open(os.path.join(path, "README.md"), encoding="utf-8") as f:
     read_me = f.read()
 
 setup(
     long_description=read_me,
-    packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
+    packages=find_packages(exclude=["contrib", "docs", "tests*"]),
     **config
 )
