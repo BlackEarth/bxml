@@ -650,6 +650,13 @@ class XML(File):
             tag = prefix + tag
         return tag
 
+    @classmethod
+    def namespace_prefix(C, elem, namespaces):
+        ns = C.tag_namespace(elem.tag)
+        for key, val in namespaces.items():
+            if val == ns:
+                return key
+
     def as_dict(self, elem=None, ignore_whitespace=True, namespaces=True):
         """Create a generalized dict output from this elem (default self.root).
         Rules:
