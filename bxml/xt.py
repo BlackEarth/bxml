@@ -84,7 +84,9 @@ class XT:
         Transform all the given elements and yield the results.
         """
         for element in elements:
-            yield self.transform(element, **params)
+            result = self.transform(element, **params)
+            if result is not None:
+                yield result
 
     def transform(self, element, **params):
         """
