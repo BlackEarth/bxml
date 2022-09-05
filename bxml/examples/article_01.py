@@ -4,6 +4,7 @@ An example of a simple XT template.
 from copy import deepcopy
 
 from bl.dict import OrderedDict
+from bxml import XML
 from bxml.builder import Builder
 from bxml.xt import XT
 
@@ -19,8 +20,9 @@ NS = OrderedDict(
     ]
 )
 
-H = Builder.single(NS.html)
-PUB = Builder(default=NS.html, **NS).pub
+B = Builder(default=NS.html, **NS)
+H = B._
+PUB = B.pub
 xt = XT(namespaces=NS)
 
 
@@ -65,4 +67,13 @@ def article(element, **params):
 # Register the default last so it will be called after all other templates are tried.
 @xt.register(test=lambda element, **params: True)
 def default(element, **params):
-    return deepcopy(element)
+    """
+    Return a new element with the same attributes and all children transformed.
+    """
+    return B(
+        element.tag,
+        dict(element.attrib),
+        element.text or "",
+        *xt.transform_all(element, **params),
+        tail=element.tail,
+    )

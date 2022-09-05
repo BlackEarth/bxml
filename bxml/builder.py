@@ -31,6 +31,20 @@ class Builder(Dict):
             self[key] = ElementMaker(namespace=namespaces[key], nsmap=nsmap)
         self._ = ElementMaker(namespace=default, nsmap=nsmap)
 
+    def __call__(self, tag, *args, **kwargs):
+        ns = XML.tag_namespace(tag)
+        keys = list(self.__dict__["nsmap"].keys())
+        values = [self.__dict__["nsmap"][k] for k in keys]
+        if ns is not None and ns in values:
+            key = keys[values.index(ns)]
+            if key is None:
+                key = "_"
+        else:
+            key = "_"
+        name = XML.tag_name(tag)
+        e = self[key](name, *args, **kwargs)
+        return e
+
     @classmethod
     def single(C, namespace=None):
         """
