@@ -9,9 +9,8 @@ from bf.css import CSS
 from bl.dict import Dict
 from bl.string import String
 from bl.zip import ZIP
-from lxml import etree
-
 from bxml.xml import XML
+from lxml import etree
 
 LOG = logging.getLogger(__name__)
 

@@ -1,8 +1,9 @@
 import logging
 import secrets
+import types
 from enum import Enum
 
-from bl.dict import Dict, OrderedDict
+from bl.dict import OrderedDict
 from lxml import etree
 
 LOG = logging.getLogger(__file__)
@@ -25,7 +26,7 @@ class TestType(Enum):
 class RegisteredTransformer:
     def __init__(self, function=None, test=None, namespaces=None):
         self.function = function
-        self.namespaces = namespaces
+        self.namespaces = namespaces or {}
 
         # if test is a string, make it an XPath test method on the given element.
         if isinstance(test, str):

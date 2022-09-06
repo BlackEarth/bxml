@@ -7,15 +7,14 @@ import re
 import sys
 import tempfile
 
+import bxml.xt
 from bl.dict import Dict
 from bl.string import String
 from bl.text import Text
 from bl.zip import ZIP
-from lxml import etree
-
-import bxml.xt
 from bxml.builder import Builder
 from bxml.xml import XML
+from lxml import etree
 
 Element = Builder()._
 
