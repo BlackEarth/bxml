@@ -1,4 +1,5 @@
 import lxml.builder
+import types
 
 
 class ElementMaker(lxml.builder.ElementMaker):
@@ -11,18 +12,15 @@ class ElementMaker(lxml.builder.ElementMaker):
     - [DISABLED] unpack nested lists of children into a single list.
     """
 
-    def __call__(self, tag, *children, tail=None):
-        # def list_children(children):
-        #     child_list = []
-        #     for ch in children:
-        #         if isinstance(ch, list):
-        #             child_list += list_children(ch)
-        #         else:
-        #             child_list.append(ch)
-        #     return child_list
-        def list_children(children):
-            return children
+    def __call__(self, tag, *elements, tail=None):
+        def gen_elements(elements):
+            for element in elements:
+                if isinstance(element, (types.GeneratorType, list, tuple)):
+                    for elem in gen_elements(element):
+                        yield elem
+                else:
+                    yield element
 
-        e = lxml.builder.ElementMaker.__call__(self, tag, *list_children(children))
+        e = lxml.builder.ElementMaker.__call__(self, tag, *gen_elements(elements))
         e.tail = tail
         return e
