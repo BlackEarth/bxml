@@ -51,7 +51,7 @@ class XT:
         Decorator to register transformers that
 
         - match by test function (lambda) or by xpath (like xsl:apply-templates select)
-        - can be called by name (like xsl:call-template name)
+        - can be called by name (like xsl:call-template name) -- just call the function.
         """
 
         def _registrar(function):
@@ -79,6 +79,9 @@ class XT:
     def xpath(self, element, xpath, namespaces=None):
         for elem in element.xpath(xpath, namespaces=namespaces or self.namespaces):
             yield elem
+
+    def find(self, element, xpath, namespaces=None):
+        return next(self.xpath(element, xpath, namespaces=namespaces), None)
 
     def transform_all(self, elements, **params):
         """
