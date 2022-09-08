@@ -1,4 +1,4 @@
--e git+https://github.com/BlackEarth/bf.git@3ba0681d0556f5c9e5cf74e253241960e6210568#egg=bf
--e git+https://github.com/BlackEarth/bl.git@901fe94a2a4c1b1852c46776d476513a705f8524#egg=bl
+-e git+https://github.com/blackearth/bf@3ba0681d0556f5c9e5cf74e253241960e6210568#egg=bf
+-e git+https://github.com/blackearth/bl@901fe94a2a4c1b1852c46776d476513a705f8524#egg=bl
 lxml~=4.9.1
 Markdown~=3.4.1
