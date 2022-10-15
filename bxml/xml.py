@@ -110,8 +110,7 @@ class XML(File):
 
     @classmethod
     def prefixed_to_namespaced(C, prefixed_name, namespaces):
-        """for a given prefix:name, return {namespace}name from the given namespaces dict
-        """
+        """for a given prefix:name, return {namespace}name from the given namespaces dict"""
         if ':' not in prefixed_name:
             return prefixed_name
         else:
@@ -385,7 +384,7 @@ class XML(File):
 
     def schematron(self, tag=None, schemas=None, schemafn=None, ext='.sch'):
         """validate the XML using Schematron; the schema might be a schematron file,
-            or it might be a RelaxNG schema that contains embedded Schematron.
+        or it might be a RelaxNG schema that contains embedded Schematron.
         """
         from . import PATH
         from .xslt import XSLT
@@ -498,9 +497,12 @@ class XML(File):
     @classmethod
     def tag_name(cls, tag):
         """return the name of the tag, with the namespace removed"""
-        while isinstance(tag, etree._Element):
+        if isinstance(tag, etree._Element) and not (isinstance(tag, etree._Comment)):
             tag = tag.tag
-        return tag.split('}')[-1]
+        if isinstance(tag, str):
+            return tag.split('}')[-1]
+        else:
+            raise TypeError(f"tag is {type(tag)}, must be a string")
 
     @classmethod
     def prefixed_tag_name(cls, tag, namespaces):
@@ -573,8 +575,8 @@ class XML(File):
         hierarchy=False,
         minimize=False,
     ):
-        """return a dict of element tags, their attribute names, and optionally attribute values, 
-            in the XML document
+        """return a dict of element tags, their attribute names, and optionally attribute values,
+        in the XML document
         """
         if tags is None:
             tags = Dict()
@@ -863,7 +865,7 @@ class XML(File):
 
     @classmethod
     def merge_contiguous(C, node, xpath, namespaces=None):
-        """Within a given node, merge elements that are next to each other 
+        """Within a given node, merge elements that are next to each other
         if they have the same tag and attributes.
         """
         new_node = deepcopy(node)
@@ -938,7 +940,7 @@ class XML(File):
 
     @classmethod
     def fragment_nesting(cls, elem1, tag2, namespaces=None):
-        """for elem1 containing elements with tag2, 
+        """for elem1 containing elements with tag2,
         fragment elem1 into elems that are adjacent to and nested within tag2"""
         elems2 = elem1.xpath("child::%s" % tag2, namespaces=namespaces)
         while len(elems2) > 0:
