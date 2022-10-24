@@ -168,7 +168,7 @@ class XML(File):
         root=None,
         encoding="UTF-8",
         doctype=None,
-        canonicalized=False,
+        canonicalized=True,
         xml_declaration=True,
         pretty_print=True,
         with_comments=True,
