@@ -811,7 +811,9 @@ class XML(File):
             else:
                 prev = elem.getprevious()
                 prev.tail = (prev.tail or "") + (elem.tail or "")
+            elem.tail = ""
         parent.remove(elem)
+        return elem
 
     @classmethod
     def remove_range(cls, elem, end_elem, delete_end=True):
