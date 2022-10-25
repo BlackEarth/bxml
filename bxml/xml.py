@@ -6,8 +6,6 @@ import re
 import subprocess
 import sys
 import tempfile
-import time
-import traceback
 from copy import deepcopy
 
 from bl.dict import Dict
@@ -827,8 +825,6 @@ class XML(File):
             parent = elem.getparent()
             nxt = elem.getnext()
             parent.remove(elem)
-            if DEBUG == True:
-                print(etree.tounicode(elem))
             elem = nxt
         if elem == end_elem:
             if delete_end == True:
@@ -839,8 +835,6 @@ class XML(File):
             cls.remove_range(parent.getnext(), end_elem)
             XML.remove_if_empty(parent)
         elif end_elem in elem.xpath("descendant::*"):
-            if DEBUG == True:
-                print(elem.text)
             elem.text = ""
             cls.remove_range(elem.getchildren()[0], end_elem)
             XML.remove_if_empty(elem)
