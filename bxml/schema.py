@@ -59,7 +59,7 @@ class Schema(Text):
         from . import XML, PATH, etree
         rncfn = os.path.splitext(self.fn)[0] + '.rnc'
         rngfn = os.path.splitext(self.fn)[0] + '.rng'
-        htmlfn = os.path.splitext(self.fn)[0] + '.html'
+        htmlfn = os.path.splitext(self.fn)[0] + ext
         if self.fn==rncfn or os.path.exists(rncfn):
             rngfn = Schema(rncfn).trang(ext='.rng')
         assert os.path.exists(rngfn)
@@ -114,6 +114,8 @@ class Schema(Text):
             pre {font-family:monospace;font-size:0.9rem;color:#666;line-height:1.1;margin-left:1.5rem;}
             hr {border:0;border-top:1px solid #999;margin:1rem 0;}
             </style></head><body>\n""" + html_body + """\n</body></html>"""
+        text = Text(fn=htmlfn, text=html_text)
+        text.write()
         html = XML(fn=htmlfn, root=html_text)
         return html
 
